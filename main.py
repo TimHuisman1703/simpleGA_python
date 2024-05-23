@@ -19,8 +19,6 @@ if __name__ == "__main__":
 				genetic_algorithm = GeneticAlgorithm(fitness,population_size,variation=cx,evaluation_budget=100000,verbose=False, save_stats=True)
 
 				best_fitness, num_evaluations = genetic_algorithm.run()
-				for i in genetic_algorithm.statistics.best_fitness_per_generation:
-					print(i)
 				runs.append(genetic_algorithm.statistics)
 				if best_fitness == fitness.value_to_reach:
 					num_success += 1

@@ -1,3 +1,4 @@
+import os
 import string
 from enum import Enum
 import numpy as np
@@ -8,6 +9,21 @@ from RunStats import RunStats
 class StatType(Enum):
     BEST_FITNESS = 1
     AVERAGE_FITNESS = 2
+
+def check_next_index_that_exists_file_name(filename: string):
+    i = 0
+    checked_file = filename
+    while os.path.exists(f"graphs/{checked_file}.png"):
+        print("Exists")
+        i += 1
+        checked_file = f"{filename}_{i}"
+    return checked_file
+
+def keep_isalnum_else_underscore(char):
+    if char.isalnum():
+       return char
+    else:
+        return "_"
 
 # Plots runs and labels them
 def plot_runs_per_generation(runs: [RunStats], run_labels: [string], stat_to_plot_name: StatType, plot_name: string):
@@ -37,5 +53,6 @@ def plot_runs_per_generation(runs: [RunStats], run_labels: [string], stat_to_plo
     plt.xlabel("Generations")
     plt.title(plot_name)
     plt.legend()
-
-    plt.show()
+    unique_name = check_next_index_that_exists_file_name("".join(keep_isalnum_else_underscore(x) for x in plot_name ))
+    print(f"name is {unique_name}")
+    plt.savefig(f"graphs/{unique_name}")
