@@ -14,7 +14,6 @@ def check_next_index_that_exists_file_name(filename: string):
     i = 0
     checked_file = filename
     while os.path.exists(f"graphs/{checked_file}.png"):
-        print("Exists")
         i += 1
         checked_file = f"{filename}_{i}"
     return checked_file
@@ -39,7 +38,6 @@ def plot_runs_per_generation(runs: [RunStats], run_labels: [string], stat_to_plo
 
     max_length = max(len(arr) for arr in values)
     same_length_values = []
-    print(values)
     for arr in values:
         same_length_value = arr + [arr[-1]] * (max_length - len(arr)) # Make sure all lengths match
         same_length_values.append(same_length_value)
