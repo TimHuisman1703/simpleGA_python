@@ -6,7 +6,7 @@ import FitnessFunction
 
 if __name__ == "__main__":
     # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
-    crossovers = ["GreedyCrossover","GreedyMutCrossover", "UniformCrossover", "OnePointCrossover"]
+    crossovers = ["TwoPointCrossover","GreedyCrossover","GreedyMutCrossover", "UniformCrossover", "OnePointCrossover"]
     evaluation_dictionary = {}
     evaluation_budget = 100000
     population_size = 1000
