@@ -37,8 +37,12 @@ class GeneticAlgorithm:
                 self.variation_operator = Variation.one_point_crossover
             elif options["variation"] == "TwoPointCrossover":
                 self.variation_operator = Variation.two_point_crossover
-            elif options["variation"] == "CustomCrossover":
-                self.variation_operator = partial(Variation.custom_crossover, self.fitness)
+            elif options["variation"] == "GreedyCrossover":
+                self.variation_operator = partial(Variation.greedy_crossover, self.fitness)
+            elif options["variation"] == "GreedyMutCrossover":
+                self.variation_operator = partial(Variation.greedy_crossover_with_mutation, self.fitness)
+            # elif options["variation"] == "CustomCrossover":
+            #     self.variation_operator = partial(Variation.custom_crossover, self.fitness)
 
         if "save_stats" in options:
             self.should_save_stats = options["save_stats"]
