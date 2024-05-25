@@ -3,6 +3,7 @@ import string
 from enum import Enum
 import numpy as np
 import matplotlib.pyplot as plt
+
 from scipy.stats import gaussian_kde
 
 from RunStats import RunStats
@@ -27,6 +28,9 @@ def keep_isalnum_else_underscore(char):
 
 def plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population_size, evaluations_budget, instance):
 
+    # set figure size so legend not too big
+    plt.rcParams["figure.figsize"] = (18, 12)
+    plt.clf()
     for cx in crossovers:
         values = evaluation_dictionary[cx]
         kde = gaussian_kde(values, bw_method='scott')
@@ -42,14 +46,16 @@ def plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population
     plt.ylabel('Density')
     plt.legend()
     plt.grid(True)
-    plt.show()
 
+
+    # save image
     instance_name = instance.replace('/', '_').replace('.txt', '').replace('maxcut-instances','')
     if not os.path.exists("graphs/"):
         os.makedirs("graphs")
-    plt.savefig(f"graphs/evaluation_plot_crossovers={crossovers}_pop_size={population_size}_budget={evaluations_budget}_instance={instance_name}")
-    plt.clf()
+    plt.savefig(f"graphs/evaluation_plot_crossovers={crossovers}_pop_size={population_size}_budget={evaluations_budget}_instance={instance_name}", bbox_inches='tight')
 
+    plt.show()
+    plt.clf()
 
 # Plots runs and labels them
 def plot_runs_per_generation(runs: [RunStats], run_labels: [string], stat_to_plot_name: StatType, plot_name: string):
