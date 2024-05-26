@@ -34,7 +34,7 @@ def plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population
     for cx in crossovers:
         values = evaluation_dictionary[cx]
         plt.scatter(values, np.repeat(height, len(values)), marker='x', label=f'Data points of {cx}')
-
+        height += 0.05
         # if all avlues the same, dont plot distribution, may crash
         if values.count(values[0]) == len(values):
             continue
@@ -45,7 +45,6 @@ def plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population
 
         plt.plot(x_grid, kde_values, label=f'PDF of {cx} evaluations')
 
-        height += 0.05
     plt.rcParams["figure.figsize"] = (28, 22)
     plt.title(f'Probability Distribution of evaluations, population_size={population_size}')
     plt.xlabel('Evaluations')
