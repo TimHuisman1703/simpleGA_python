@@ -104,3 +104,31 @@ def greedy_crossover_with_mutation( fitness: FitnessFunction, individual_a: Indi
 
     return [offspring_a, offspring_b]
 
+
+def qinghua_operator(fitness, individual_a, individual_b):
+    # follow Algorithm 2 from the paper
+    g_a, g_b = individual_a.genotype, individual_b.genotype
+    indices_same = np.where(g_a == g_b)[0]
+    if len(indices_same) < len(g_a) // 2:
+        g_b = 1 - g_b
+        indices_same = np.where(g_a == g_b)[0]
+    indices_different = np.where(g_a != g_b)[0]
+    offspring = np.zeros(len(individual_a.genotype))
+    offspring[indices_same] = individual_a.genotype[indices_same]
+
+    indices_same = set(indices_same)
+    indices_different = set(indices_different)
+    len_different = len(indices_different)
+    for k in range(len_different):
+        genotype = g_a if k % 2 == 0 else g_b
+        max_vc = -float('inf')
+        max_index = None
+        for new_index in indices_different:
+            vc = fitness.contribution_value(offspring, indices_same, new_index, genotype[new_index])
+            if vc > max_vc:
+                max_vc = vc
+                max_index = new_index
+        offspring[max_index] = genotype[max_index]
+        indices_same.add(max_index)
+        indices_different.remove(max_index)
+    return Individual(offspring)
