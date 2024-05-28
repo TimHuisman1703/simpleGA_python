@@ -1,3 +1,4 @@
 /graphs/
 /output**.txt
 **__pycache__**
+.idea/
