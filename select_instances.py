@@ -7,7 +7,7 @@ num_total_select = 10
 directory = './maxcut-instances'
 
 
-def get_instances(seed=seed, amount=num_select):
+def get_instances(seed=seed, amount=num_select, add_low=False, add_mid=False, add_high=False):
     instance_dict = select_instances(seed)
     instances = []
     
@@ -17,22 +17,22 @@ def get_instances(seed=seed, amount=num_select):
         print(f'Set {set_inst} has the vertices {sorted(vertices, key=lambda it: it[0])}')
         sorted_vertices= list(sorted(vertices, key=lambda it: it[0]))
 
-        vertex_amount_low = sorted_vertices[0][0]
-        files_low = sorted_vertices[0][1]
+        if add_low:
+            vertex_amount_low = sorted_vertices[0][0]
+            files_low = sorted_vertices[0][1]
+            files_low = files_low[:amount]
+            instances.append((vertex_amount_low, set_inst, files_low))
+        if add_mid:
+            vertex_amount_mid = sorted_vertices[len(sorted_vertices) // 2][0]
+            files_mid = sorted_vertices[len(sorted_vertices) // 2][1]
+            files_mid = files_mid[:amount]
+            instances.append((vertex_amount_mid, set_inst, files_mid))
+        if add_high:
+            vertex_amount_high = sorted_vertices[len(sorted_vertices) - 1][0]
+            files_high = sorted_vertices[len(sorted_vertices) - 1][1]
+            files_high = files_high[:amount]
+            instances.append((vertex_amount_high, set_inst, files_high))
 
-        vertex_amount_mid = sorted_vertices[len(sorted_vertices) // 2][0]
-        files_mid = sorted_vertices[len(sorted_vertices) // 2][1]
-
-        # vertex_amount_high = sorted_vertices[len(sorted_vertices) - 1][0]
-        # files_high = sorted_vertices[len(sorted_vertices) - 1][1]
-        
-        files_low = files_low[:amount]
-        files_mid = files_mid[:amount]
-        # files_high = files_high[:amount]
-
-        instances.append((vertex_amount_low, set_inst, files_low))
-        instances.append((vertex_amount_mid, set_inst, files_mid))
-        # instances.append((vertex_amount_high, set_inst, files_high))
     return instances
 
 
