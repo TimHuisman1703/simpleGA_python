@@ -7,11 +7,11 @@ import FitnessFunction
 if __name__ == "__main__":
     # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
     setups = [
-        # {'variation': 'TwoPointCrossover'},
-        # {'variation': 'GreedyCrossover'},
-        # {'variation': 'GreedyMutCrossover'},
-        # {'variation': 'UniformCrossover'},
-        # {'variation': 'OnePointCrossover'},
+        {'variation': 'TwoPointCrossover'},
+        {'variation': 'GreedyCrossover'},
+        {'variation': 'GreedyMutCrossover'},
+        {'variation': 'UniformCrossover'},
+        {'variation': 'OnePointCrossover'},
         {'variation': 'Qinghua_LocalSearch',
          'offspring': 'Qinghua',
          'selection': 'BestSolutionsOnly'}
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     evaluation_dictionary = {}
     evaluation_budget = 10000
     population_size = 100
-    instances = get_instances(amount=1, add_low=True, add_mid=True)
+    instances = get_instances(amount=1, add_low=True, add_mid=True, add_high=True)
     # inst = "maxcut-instances/setE/n0000040i04.txt"
     for vertex_amount, set_name, instance_names in instances:
         print(f"Running: {set_name}: {instance_names}, with {vertex_amount} vertices")
