@@ -106,13 +106,11 @@ def plot_average_evaluations_for_different_population_sizes(population_sizes, av
         color = ['b', 'g', 'r', 'c', 'm', 'y', 'k'][counter % 7]
         plt.scatter(population_sizes, values, color=color, label=f"Averages for {cx}")
 
-        # Calculate the best fit line
-        coefficients = np.polyfit(population_sizes, values, 2)  # 1st degree polynomial (linear fit)
+        coefficients = np.polyfit(population_sizes, values, 2)
         poly = np.poly1d(coefficients)
         y_fit = poly(population_sizes)
 
-        # Plot the best fit line
-        plt.plot(population_sizes, y_fit, "--", color=color, label=f"Best fit line for {cx}")
+        plt.plot(population_sizes, y_fit, "--", color=color, label=f"Best fit for {cx}")
 
     plt.title("Average number of evaluations to reach optimum")
     plt.xlabel('Population size')
