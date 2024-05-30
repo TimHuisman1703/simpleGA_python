@@ -5,6 +5,7 @@ from functools import partial
 import Variation
 import Selection
 import Offspring
+import AdaptiveMutation
 from FitnessFunction import FitnessFunction
 from Individual import Individual
 from RunStats import RunStats
@@ -26,6 +27,7 @@ class GeneticAlgorithm:
         self.statistics = RunStats()
         self.should_save_stats = False
         self.apply_local_search_to_offspring = False
+        self.adaptive_mutation = True
 
         if "verbose" in options:
             self.verbose = options["verbose"]
@@ -44,12 +46,21 @@ class GeneticAlgorithm:
                 self.selection_operator = Selection.tournament_selection
             elif options['selection'] == 'BestSolutionsOnly':
                 self.selection_operator = Selection.best_solutions_only
+            elif options['selection'] == 'FitnessSharing':
+                self.selection_operator = Selection.fitness_sharing_selection
+                
+        if "mutation" in options:
+            if options["mutation"] == "AdaptiveMutation":
+                self.mutation_operator = AdaptiveMutation.adaptive_mutation_wrapper
 
         if 'offspring' in options:
             if options['offspring'] == 'Default':
                 self.offspring_operator = Offspring.default
             elif options['offspring'] == 'Qinghua':
                 self.offspring_operator = Offspring.qinghua_operator
+            elif options['offspring'] == 'SimulatedAnnealing':
+                self.offspring_operator = partial(Offspring.simulated_annealing_wrapper, self.fitness)
+
 
         if "save_stats" in options:
             self.should_save_stats = options["save_stats"]
@@ -79,12 +90,15 @@ class GeneticAlgorithm:
                            range(self.population_size)]
         for individual in self.population:
             self.fitness.evaluate(individual)
-
+    
     def make_offspring(self):
         offspring = self.offspring_operator(self.population, self.variation_operator)
         if self.apply_local_search_to_offspring:
             for individual in offspring:
                 Variation.local_search_individual(self.fitness, individual)
+        if hasattr(self, 'mutation_operator'):
+            for individual in offspring:
+                individual = self.mutation_operator(individual, self.population, self.fitness)
         for individual in offspring:
             self.fitness.evaluate(individual)
         return offspring

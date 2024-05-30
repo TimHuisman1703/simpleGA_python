@@ -7,14 +7,19 @@ import FitnessFunction
 if __name__ == "__main__":
     # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
     setups = [
-        {'variation': 'TwoPointCrossover'},
+        # {'variation': 'TwoPointCrossover'},
         {'variation': 'GreedyCrossover'},
-        {'variation': 'GreedyMutCrossover'},
-        {'variation': 'UniformCrossover'},
-        {'variation': 'OnePointCrossover'},
-        {'variation': 'Qinghua_LocalSearch',
-         'offspring': 'Qinghua',
-         'selection': 'BestSolutionsOnly'}
+        # {'variation': 'GreedyMutCrossover'},
+        # {'variation': 'UniformCrossover'},
+        # {'variation': 'OnePointCrossover'},
+        # {'variation': 'Qinghua_LocalSearch',
+        #  'offspring': 'Qinghua',
+        #  'selection': 'BestSolutionsOnly'},
+        {
+            'variation': 'GreedyCrossover',
+            # 'selection': 'FitnessSharing', 
+            # 'offspring': 'SimulatedAnnealing',  
+            'mutation': 'AdaptiveMutation'}
     ]
     evaluation_dictionary = {}
     evaluation_budget = 10000
