@@ -19,13 +19,13 @@ if __name__ == "__main__":
         {'variation': 'ECGA'}
     ]
     evaluation_dictionary = {}
-    evaluation_budget = 100000
-    population_size = 100
+    evaluation_budget = 10000
+    population_size = 1000
     instances = get_instances(amount=1)
     # inst = "maxcut-instances/setE/n0000040i04.txt"
     for vertex_amount, set_name, instance_names in instances:
         print("=" * 100 + "\n")
-        print(f"\033[33;1mRunning: {set_name}: {instance_names}, with {vertex_amount} vertices\033[0m\n")
+        print(f"\033[36;1mRunning: {set_name}: {instance_names}, with {vertex_amount} vertices\033[0m\n")
         for instance_name in instance_names:
             instance_path = f"maxcut-instances/{set_name}/{instance_name}"
             for setup in setups:

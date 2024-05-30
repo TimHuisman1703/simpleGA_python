@@ -80,7 +80,7 @@ class GeneticAlgorithm:
 
     def print_statistics(self):
         fitness_list = [ind.fitness for ind in self.population]
-        print("Generation {}: Best_fitness: {:.1f}, Avg._fitness: {:.3f}, Nr._of_evaluations: {}".format(
+        print("\033[31mGeneration {}\033[0m: Best_fitness: {:.1f}, Avg._fitness: {:.3f}, Nr._of_evaluations: {}".format(
             self.number_of_generations, max(fitness_list), np.mean(fitness_list), self.fitness.number_of_evaluations))
 
     def get_best_fitness(self):

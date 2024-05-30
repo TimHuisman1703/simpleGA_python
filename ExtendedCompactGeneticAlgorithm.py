@@ -39,40 +39,60 @@ class ExtendedCompactGeneticAlgorithm:
         for individual in self.population:
             self.fitness.evaluate(individual)
 
-    def get_distributions(self):
-        distributions = {subset: {} for subset in self.model}
+    def get_distribution_subset(self, subset):
+        distribution = {}
 
         for individual in self.population:
-            for subset in self.model:
-                value = tuple(individual.genotype[j] for j in subset)
-                distributions[subset][value] = distributions[subset].get(value, 0) + 1
+            value = tuple(individual.genotype[j] for j in subset)
+            distribution[value] = distribution.get(value, 0) + 1 / len(self.population)
 
-        for subset in self.model:
-            s = 0
-            options = []
-            for key, value in distributions[subset].items():
-                s += value
-                options.append((key, s / len(self.population)))
-            distributions[subset] = options
+        return distribution
 
-        return distributions
+    def get_distributions(self, model):
+        return {subset: self.get_distribution_subset(subset) for subset in model}
 
     def sample_from_distribution(self, distribution):
         u = np.random.random()
 
-        a = 0
-        b = len(distribution) - 1
-        while a != b:
-            mid = (a + b) // 2
-            if distribution[mid][1] < u:
-                a = mid + 1
-            else:
-                b = mid
+        s = 0
+        for key, value in distribution.items():
+            s += value
+            if u <= s:
+                return key
 
-        return distribution[a][0]
+    def get_complexity_of_subset(self, subset):
+        distribution = self.get_distribution_subset(subset)
+
+        model_complexity = ((1 << len(subset)) - 1) * np.log2(len(self.population) + 1)
+
+        compressed_population_complexity = 0.0
+        for p in distribution.values():
+            if p > 0.0:
+                compressed_population_complexity += -p * np.log2(p)
+        compressed_population_complexity *= len(self.population)
+
+        return model_complexity + compressed_population_complexity
+
+    def mutate_model(self, model):
+        best_model = model
+        best_model_complexity_diff = 0.0
+
+        # Merge two subsets
+        for i in range(len(model)):
+            for j in range(i + 1, len(model)):
+                complexity_added = self.get_complexity_of_subset(tuple(sorted([*model[i], *model[j]])))
+                complexity_removed = self.get_complexity_of_subset(model[i]) + self.get_complexity_of_subset(model[j])
+                complexity_diff = complexity_added - complexity_removed
+                if complexity_diff < best_model_complexity_diff:
+                    best_model = model[:i] + model[i+1:j] + model[j+1:] + [tuple(sorted([*model[i], *model[j]]))]
+
+        if best_model == model:
+            return best_model
+        else:
+            return self.mutate_model(best_model)
 
     def make_offspring(self):
-        distributions = self.get_distributions()
+        distributions = self.get_distributions(self.model)
 
         offspring = []
         for _ in range(len(self.population)):
@@ -96,7 +116,7 @@ class ExtendedCompactGeneticAlgorithm:
 
     def print_statistics(self):
         fitness_list = [ind.fitness for ind in self.population]
-        print("Generation {}: Best_fitness: {:.1f}, Avg._fitness: {:.3f}, Nr._of_evaluations: {}".format(
+        print("\033[31mGeneration {}\033[0m: Best_fitness: {:.1f}, Avg._fitness: {:.3f}, Nr._of_evaluations: {}".format(
             self.number_of_generations, max(fitness_list), np.mean(fitness_list), self.fitness.number_of_evaluations))
 
     def get_best_fitness(self):
@@ -120,6 +140,7 @@ class ExtendedCompactGeneticAlgorithm:
                 if (self.verbose and self.number_of_generations % 100 == 0):
                     self.print_statistics()
 
+                self.model = self.mutate_model(self.model)
                 offspring = self.make_offspring()
                 selection = self.make_selection(offspring)
                 self.population = selection
@@ -137,4 +158,3 @@ class ExtendedCompactGeneticAlgorithm:
         if (self.print_final_results):
             self.print_statistics()
         return self.get_best_fitness(), self.fitness.number_of_evaluations
-
