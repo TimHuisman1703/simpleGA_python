@@ -25,6 +25,7 @@ class GeneticAlgorithm:
         self.print_final_results = True
         self.statistics = RunStats()
         self.should_save_stats = False
+        self.apply_local_search_to_offspring = False
 
         if "verbose" in options:
             self.verbose = options["verbose"]
@@ -47,6 +48,10 @@ class GeneticAlgorithm:
                 self.variation_operator = partial(Variation.qinghua_operator, self.fitness)
             # elif options["variation"] == "CustomCrossover":
             #     self.variation_operator = partial(Variation.custom_crossover, self.fitness)
+            self.initialize_variation(options["variation"])
+
+        if "save_stats" in options:
+            self.should_save_stats = options["save_stats"]
 
         if 'selection' in options:
             if options['selection'] == 'TournamentSelection':
@@ -63,6 +68,24 @@ class GeneticAlgorithm:
         if "save_stats" in options:
             self.should_save_stats = options["save_stats"]
 
+    def initialize_variation(self, variation_description):
+        if   "UniformCrossover" in variation_description:
+            self.variation_operator = Variation.uniform_crossover
+        elif "OnePointCrossover" in variation_description:
+            self.variation_operator = Variation.one_point_crossover
+        elif "TwoPointCrossover" in variation_description:
+            self.variation_operator = Variation.two_point_crossover
+        elif "GreedyCrossover" in variation_description:
+            self.variation_operator = partial(Variation.greedy_crossover, self.fitness)
+        elif "GreedyMutCrossover" in variation_description:
+            self.variation_operator = partial(Variation.greedy_crossover_with_mutation, self.fitness)
+
+        if "LocalSearch" in variation_description:
+            self.apply_local_search_to_offspring = True
+        else:
+            self.apply_local_search_to_offspring = False
+
+
     def initialize_population(self):
         self.population = [Individual.initialize_uniform_at_random(self.fitness.dimensionality) for i in
                            range(self.population_size)]
@@ -71,9 +94,11 @@ class GeneticAlgorithm:
 
     def make_offspring(self):
         offspring = self.offspring_operator(self.population, self.variation_operator)
+        if self.apply_local_search_to_offspring:
+            for individual in offspring:
+                Variation.local_search_individual(self.fitness, individual)
         for individual in offspring:
             self.fitness.evaluate(individual)
-            # print(individual.fitness)
         return offspring
 
     def make_selection(self, offspring):

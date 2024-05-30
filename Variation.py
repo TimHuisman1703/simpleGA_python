@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 
 from Individual import Individual
@@ -103,6 +105,21 @@ def greedy_crossover_with_mutation( fitness: FitnessFunction, individual_a: Indi
         offspring_b.genotype[i] = c_b
 
     return [offspring_a, offspring_b]
+
+def local_search_individual(fitness: FitnessFunction, individual_a: Individual):
+    l = len(individual_a.genotype)
+    needs_rerunning = True
+    while needs_rerunning:
+        needs_rerunning = False
+        gene_modification_order = list(range(l))
+        random.shuffle(gene_modification_order)
+        for i in gene_modification_order:
+            if fitness.does_partial_change_lead_to_improvement(individual_a, i)[0]:
+                individual_a.genotype[i] = 1 - individual_a.genotype[i]
+                needs_rerunning = True
+                break
+
+
 
 
 def qinghua_operator(fitness, individual_a, individual_b):

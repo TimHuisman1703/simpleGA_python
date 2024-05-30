@@ -22,40 +22,43 @@ class FitnessFunction:
     def partial (self, individual: Individual, vertex):
         return 0
 
-class OneMax(FitnessFunction):
-	def __init__( self, dimensionality ):
-		super().__init__()
-		self.dimensionality = dimensionality
-		self.value_to_reach = dimensionality
+    def does_partial_change_lead_to_improvement(self, individual: Individual, vertex):
+        return False, 0
 
-	def evaluate( self, individual: Individual, cost=1.0 ):
-		individual.fitness = np.sum(individual.genotype)
-		super().evaluate(individual)
+class OneMax(FitnessFunction):
+    def __init__( self, dimensionality ):
+        super().__init__()
+        self.dimensionality = dimensionality
+        self.value_to_reach = dimensionality
+
+    def evaluate( self, individual: Individual, cost=1.0 ):
+        individual.fitness = np.sum(individual.genotype)
+        super().evaluate(individual)
 
 class DeceptiveTrap(FitnessFunction):
-	def __init__( self, dimensionality ):
-		super().__init__()
-		self.dimensionality = dimensionality
-		self.trap_size = 5
-		assert dimensionality % self.trap_size == 0, "Dimensionality should be a multiple of trap size"
-		self.value_to_reach = dimensionality
+    def __init__( self, dimensionality ):
+        super().__init__()
+        self.dimensionality = dimensionality
+        self.trap_size = 5
+        assert dimensionality % self.trap_size == 0, "Dimensionality should be a multiple of trap size"
+        self.value_to_reach = dimensionality
 
-	def trap_function( self, genotype ):
-		assert len(genotype) == self.trap_size
-		k = self.trap_size
-		bit_sum = np.sum(genotype)
-		if bit_sum == k:
-			return k
-		else:
-			return k-1-bit_sum
+    def trap_function( self, genotype ):
+        assert len(genotype) == self.trap_size
+        k = self.trap_size
+        bit_sum = np.sum(genotype)
+        if bit_sum == k:
+            return k
+        else:
+            return k-1-bit_sum
 
-	def evaluate( self, individual: Individual, cost=1.0):
-		num_subfunctions = self.dimensionality // self.trap_size
-		result = 0
-		for i in range(num_subfunctions):
-			result += self.trap_function(individual.genotype[i*self.trap_size:(i+1)*self.trap_size])
-		individual.fitness = result
-		super().evaluate(individual)
+    def evaluate( self, individual: Individual, cost=1.0):
+        num_subfunctions = self.dimensionality // self.trap_size
+        result = 0
+        for i in range(num_subfunctions):
+            result += self.trap_function(individual.genotype[i*self.trap_size:(i+1)*self.trap_size])
+        individual.fitness = result
+        super().evaluate(individual)
 
 class MaxCut(FitnessFunction):
     def __init__( self, instance_file ):
@@ -148,5 +151,26 @@ class MaxCut(FitnessFunction):
                 vc += self.weights[(new_index, other_vertex)]
         self.number_of_evaluations += len(edges) / len(self.edge_list)
         return vc
+    def does_partial_change_lead_to_improvement(self, individual: Individual, vertex):
+        edges = self.adjacency_list[vertex]
+        individual_color = individual.genotype[vertex]
+        same_color_result = 0
+        different_color_result = 0
+
+        for other_vertex in edges:
+            w = self.weights[(vertex, other_vertex)]
+            if individual_color != individual.genotype[other_vertex]:
+                same_color_result += w
+            else:
+                different_color_result += w
+        super().evaluate(individual, len(edges) / len(self.edge_list))
+
+        if same_color_result >= different_color_result:
+            return False, same_color_result
+        else:
+            return True, different_color_result
+
+
+
 
 
