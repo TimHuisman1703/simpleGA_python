@@ -34,20 +34,6 @@ class GeneticAlgorithm:
             self.evaluation_budget = options["evaluation_budget"]
 
         if "variation" in options:
-            if options["variation"] == "UniformCrossover":
-                self.variation_operator = Variation.uniform_crossover
-            elif options["variation"] == "OnePointCrossover":
-                self.variation_operator = Variation.one_point_crossover
-            elif options["variation"] == "TwoPointCrossover":
-                self.variation_operator = Variation.two_point_crossover
-            elif options["variation"] == "GreedyCrossover":
-                self.variation_operator = partial(Variation.greedy_crossover, self.fitness)
-            elif options["variation"] == "GreedyMutCrossover":
-                self.variation_operator = partial(Variation.greedy_crossover_with_mutation, self.fitness)
-            elif options['variation'] == 'Qinghua':
-                self.variation_operator = partial(Variation.qinghua_operator, self.fitness)
-            # elif options["variation"] == "CustomCrossover":
-            #     self.variation_operator = partial(Variation.custom_crossover, self.fitness)
             self.initialize_variation(options["variation"])
 
         if "save_stats" in options:
@@ -79,6 +65,8 @@ class GeneticAlgorithm:
             self.variation_operator = partial(Variation.greedy_crossover, self.fitness)
         elif "GreedyMutCrossover" in variation_description:
             self.variation_operator = partial(Variation.greedy_crossover_with_mutation, self.fitness)
+        elif "Qinghua" in variation_description:
+            self.variation_operator = partial(Variation.qinghua_operator, self.fitness)
 
         if "LocalSearch" in variation_description:
             self.apply_local_search_to_offspring = True
