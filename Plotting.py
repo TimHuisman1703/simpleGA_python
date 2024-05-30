@@ -89,10 +89,39 @@ def plot_runs_per_generation(runs: [RunStats], run_labels: [string], stat_to_plo
     plt.ylabel(stat_name)
     plt.xlabel("Generations")
     plt.title(plot_name)
-    plt.legend()
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
     unique_name = check_next_index_that_exists_file_name("".join(keep_isalnum_else_underscore(x) for x in plot_name ))
     print(f"name is {unique_name}")
     if not os.path.exists(f"graphs/{set_name}/{instance_name}"):
         os.makedirs(f"graphs/{set_name}/{instance_name}")
     plt.savefig(f"graphs/{set_name}/{instance_name}/{unique_name}")
+
+def plot_average_evaluations_for_different_population_sizes(population_sizes, average_evaluations_dict, crossovers, instance, evaluations_budget):
+    plt.clf()
+    counter = -1
+    for cx in crossovers:
+        counter += 1
+        print(cx)
+        values = average_evaluations_dict[cx]
+        color = ['b', 'g', 'r', 'c', 'm', 'y', 'k'][counter % 7]
+        plt.scatter(population_sizes, values, color=color, label=f"Averages for {cx}")
+
+        # Calculate the best fit line
+        coefficients = np.polyfit(population_sizes, values, 2)  # 1st degree polynomial (linear fit)
+        poly = np.poly1d(coefficients)
+        y_fit = poly(population_sizes)
+
+        # Plot the best fit line
+        plt.plot(population_sizes, y_fit, "--", color=color, label=f"Best fit line for {cx}")
+
+    plt.title("Average number of evaluations to reach optimum")
+    plt.xlabel('Population size')
+    plt.ylabel('Average number of evaluations')
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+    if not os.path.exists(f"graphs/evaluations_based_on_pop/{instance[1]}/{instance[2]}"):
+        os.makedirs(f"graphs/evaluations_based_on_pop/{instance[1]}/{instance[2]}")
+    instance_name = f"{instance[1]}_{instance[2]}_vertices={instance[0]}".replace('.txt', '')
+    plt.savefig(
+        f"graphs/evaluations_based_on_pop/{instance[1]}/{instance[2]}/budget={evaluations_budget}_instance={instance_name}",
+        bbox_inches='tight')
 

@@ -36,6 +36,8 @@ class GeneticAlgorithm:
 
         if "save_stats" in options:
             self.should_save_stats = options["save_stats"]
+        if "print_final_results" in options:
+            self.print_final_results = options["print_final_results"]
 
     def initialize_variation(self, variation_description):
         if   "UniformCrossover" in variation_description:
