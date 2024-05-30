@@ -73,6 +73,7 @@ class GeneticAlgorithm:
         offspring = self.offspring_operator(self.population, self.variation_operator)
         for individual in offspring:
             self.fitness.evaluate(individual)
+            # print(individual.fitness)
         return offspring
 
     def make_selection(self, offspring):

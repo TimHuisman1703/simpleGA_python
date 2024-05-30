@@ -7,6 +7,6 @@ class ValueToReachFoundException(Exception):
 		self.individual = individual
 
 
-def hamming_distance(individual_a: Individual, individual_b: Individual):
-	return len(np.where(individual_a.genotype != individual_b.genotype)[0])
+def hamming_distance(individual_a, individual_b):
+	return len(np.where(individual_a != individual_b)[0])
 
