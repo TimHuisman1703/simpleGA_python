@@ -78,13 +78,14 @@ class ExtendedCompactGeneticAlgorithm:
         best_model_complexity_diff = 0.0
 
         # Merge two subsets
-        for i in range(len(model)):
-            for j in range(i + 1, len(model)):
-                complexity_added = self.get_complexity_of_subset(tuple(sorted([*model[i], *model[j]])))
-                complexity_removed = self.get_complexity_of_subset(model[i]) + self.get_complexity_of_subset(model[j])
-                complexity_diff = complexity_added - complexity_removed
-                if complexity_diff < best_model_complexity_diff:
-                    best_model = model[:i] + model[i+1:j] + model[j+1:] + [tuple(sorted([*model[i], *model[j]]))]
+        pairs = [(i, j) for i in range(len(model)) for j in range(i + 1, len(model))]
+        np.random.shuffle(pairs)
+        for i, j in pairs[:min(25, len(pairs))]:
+            complexity_added = self.get_complexity_of_subset(tuple(sorted([*model[i], *model[j]])))
+            complexity_removed = self.get_complexity_of_subset(model[i]) + self.get_complexity_of_subset(model[j])
+            complexity_diff = complexity_added - complexity_removed
+            if complexity_diff < best_model_complexity_diff:
+                best_model = model[:i] + model[i+1:j] + model[j+1:] + [tuple(sorted([*model[i], *model[j]]))]
 
         if best_model == model:
             return best_model
