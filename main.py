@@ -7,11 +7,11 @@ import FitnessFunction
 if __name__ == "__main__":
     # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
     setups = [
-        # {'variation': 'TwoPointCrossover'},
-        # {'variation': 'GreedyCrossover'},
-        # {'variation': 'GreedyMutCrossover'},
-        # {'variation': 'UniformCrossover'},
-        # {'variation': 'OnePointCrossover'},
+        {'variation': 'TwoPointCrossover'},
+        {'variation': 'GreedyCrossover'},
+        {'variation': 'GreedyMutCrossover'},
+        {'variation': 'UniformCrossover'},
+        {'variation': 'OnePointCrossover'},
         {'variation': 'Qinghua',
          'offspring': 'Qinghua',
          'selection': 'BestSolutionsOnly'}
