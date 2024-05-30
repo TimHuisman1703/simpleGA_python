@@ -10,11 +10,10 @@ directory = './maxcut-instances'
 def get_instances(seed=seed, amount=num_select):
     instance_dict = select_instances(seed)
     instances = []
-    
+
     for set_inst in instance_dict.keys():
         # per each number of vertices, get the corresponding files
         vertices = instance_dict[set_inst]
-        print(f'Set {set_inst} has the vertices {sorted(vertices, key=lambda it: it[0])}')
         sorted_vertices= list(sorted(vertices, key=lambda it: it[0]))
 
         vertex_amount_low = sorted_vertices[0][0]
@@ -23,15 +22,15 @@ def get_instances(seed=seed, amount=num_select):
         vertex_amount_mid = sorted_vertices[len(sorted_vertices) // 2][0]
         files_mid = sorted_vertices[len(sorted_vertices) // 2][1]
 
-        # vertex_amount_high = sorted_vertices[len(sorted_vertices) - 1][0]
-        # files_high = sorted_vertices[len(sorted_vertices) - 1][1]
-        
+        vertex_amount_high = sorted_vertices[len(sorted_vertices) - 1][0]
+        files_high = sorted_vertices[len(sorted_vertices) - 1][1]
+
         files_low = files_low[:amount]
         files_mid = files_mid[:amount]
-        # files_high = files_high[:amount]
+        files_high = files_high[:amount]
 
         instances.append((vertex_amount_low, set_inst, files_low))
-        instances.append((vertex_amount_mid, set_inst, files_mid))
+        # instances.append((vertex_amount_mid, set_inst, files_mid))
         # instances.append((vertex_amount_high, set_inst, files_high))
     return instances
 
@@ -51,7 +50,6 @@ def select_instances(seed=seed):
                     if v not in vertices:
                         vertices[v] = []
                     vertices[v].append(file)
-        print(f'Set {set_inst} has the vertices {sorted(list(vertices.keys()))}')
 
         vertices = list(sorted(vertices.items(), key=lambda it: it[0]))
         selected_vertices = []
@@ -62,10 +60,6 @@ def select_instances(seed=seed):
 
         instance_dict[set_inst] = vertices
     return instance_dict
-         
-
-
-
 
 
 if __name__ == "__main__":

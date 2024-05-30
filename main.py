@@ -2,6 +2,7 @@ import numpy as np
 from select_instances import get_instances
 from Plotting import plot_evaluation_for_crossovers, plot_runs_per_generation, StatType
 from GeneticAlgorithm import GeneticAlgorithm
+from ExtendedCompactGeneticAlgorithm import ExtendedCompactGeneticAlgorithm
 import FitnessFunction
 
 if __name__ == "__main__":
@@ -14,31 +15,45 @@ if __name__ == "__main__":
         {'variation': 'OnePointCrossover'},
         {'variation': 'Qinghua',
          'offspring': 'Qinghua',
-         'selection': 'BestSolutionsOnly'}
+         'selection': 'BestSolutionsOnly'},
+        {'variation': 'ECGA'}
     ]
     evaluation_dictionary = {}
     evaluation_budget = 100000
-    population_size = 10
+    population_size = 100
     instances = get_instances(amount=1)
     # inst = "maxcut-instances/setE/n0000040i04.txt"
     for vertex_amount, set_name, instance_names in instances:
-        print(f"Running: {set_name}: {instance_names}, with {vertex_amount} vertices")
+        print("=" * 100 + "\n")
+        print(f"\033[33;1mRunning: {set_name}: {instance_names}, with {vertex_amount} vertices\033[0m\n")
         for instance_name in instance_names:
             instance_path = f"maxcut-instances/{set_name}/{instance_name}"
             for setup in setups:
-                with open("output-{}.txt".format(setup['variation']),"w") as f:
+                variation = setup['variation']
+                print(f"\033[1m{variation}\033[0m")
+
+                with open("output-{}.txt".format(variation),"w") as f:
                     num_evaluations_list = []
                     num_runs = 10
                     num_success = 0
                     runs = []
                     for i in range(num_runs):
                         fitness = FitnessFunction.MaxCut(instance_path)
-                        genetic_algorithm = GeneticAlgorithm(fitness,
-                                                             population_size,
-                                                             evaluation_budget=evaluation_budget,
-                                                             verbose=False,
-                                                             save_stats=True,
-                                                             **setup)
+
+                        if (variation == "ECGA"):
+                            genetic_algorithm = ExtendedCompactGeneticAlgorithm(fitness,
+                                                                                population_size,
+                                                                                evaluation_budget=evaluation_budget,
+                                                                                verbose=False,
+                                                                                save_stats=True,
+                                                                                **setup)
+                        else:
+                            genetic_algorithm = GeneticAlgorithm(fitness,
+                                                                 population_size,
+                                                                 evaluation_budget=evaluation_budget,
+                                                                 verbose=False,
+                                                                 save_stats=True,
+                                                                 **setup)
 
                         best_fitness, num_evaluations = genetic_algorithm.run()
                         runs.append(genetic_algorithm.statistics)
@@ -57,6 +72,7 @@ if __name__ == "__main__":
                     print("{} evaluations (median)".format(np.median(num_evaluations_list)))
                     percentiles = np.percentile(num_evaluations_list,[10,50,90])
                     f.write("{} {} {} {} {}\n".format(population_size,num_success/num_runs,percentiles[0],percentiles[1],percentiles[2]))
+                    print()
 
             crossovers = [setup['variation'] for setup in setups]
             plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population_size, evaluation_budget, (vertex_amount, set_name, instance_name))
