@@ -1,16 +1,27 @@
 import numpy as np
 
 import Plotting
-from select_instances import get_instances
+from select_instances import get_instances, get_instance_sets
 from Plotting import plot_evaluation_for_crossovers, plot_runs_per_generation, StatType
 from GeneticAlgorithm import GeneticAlgorithm
 import FitnessFunction
+
+
 
 def calculate_avg_eval_to_opt_diff_population(variations, eval_budget, instance_pth, instance, runs_per_pop, min_pop, max_pop, num_pop_thresholds):
     pop_sizes = np.linspace(min_pop, max_pop, num_pop_thresholds, endpoint=True)
     pop_sizes  = list(map(lambda x: round(x) + 1 if round(x) % 2 != 0 else round(x), pop_sizes))
     print(pop_sizes)
     results_per_variation_operator = {}
+
+    dataframe = {
+        'Crossover type': [],
+        'Evaluation amount': [],
+        'Population': [],
+        'Evaluations at convergence': [],
+    }
+    evaluation_keys = ['Population', 'Evaluation amount', 'Crossover type']
+    convergence_keys = ['Population', 'Evaluations at convergence', 'Crossover type']
 
     for cx in variations:
         averages = []
@@ -23,27 +34,90 @@ def calculate_avg_eval_to_opt_diff_population(variations, eval_budget, instance_
                 fitness = FitnessFunction.MaxCut(instance_pth)
                 g_a = GeneticAlgorithm(fitness, pop_size, variation=cx,
                                                      evaluation_budget=eval_budget, verbose=False,  save_stats=False, print_final_results=False)
-                best_fitness, num_evaluations = g_a.run()
+                best_fitness, num_evaluations, num_converged = g_a.run()
                 averages[i] += num_evaluations/runs_per_pop
+
+                # add data to dataframe
+                dataframe['Evaluation amount'].append(num_evaluations)
+                dataframe['Crossover type'].append(cx)
+                dataframe['Population'].append(pop_size)
+                dataframe['Evaluations at convergence'].append(num_converged)
+
         results_per_variation_operator[cx] = averages
     Plotting.plot_average_evaluations_for_different_population_sizes(pop_sizes,results_per_variation_operator, variations, instance, eval_budget)
 
+    dataframe_evaluations = {key: dataframe[key] for key in evaluation_keys}
+    dataframe_convergence = {key: dataframe[key] for key in convergence_keys}
+    Plotting.boxplot_dataframe(dataframe_evaluations, "regular", instance)
+    Plotting.boxplot_dataframe(dataframe_convergence, "convergence", instance)
+
+
+def calculate_eval_diff_per_crossover_over_set(variations, evaluation_budget, population_size, runs, instances):
+
+    dataframe = {
+        'Crossover type': [],
+        'Instance': [],
+        'Evaluation amount': [],
+        'Evaluations at convergence': [],
+    }
+    evaluation_keys = ['Instance', 'Evaluation amount', 'Crossover type']
+    convergence_keys = ['Instance', 'Evaluations at convergence', 'Crossover type']
+
+
+    for set_name in instances:
+        print(f"Running set {set_name}")
+        for vertex_amount, instance_names in instances[set_name]:
+            for instance_name in instance_names:
+                print(f"Running instance {instance_name}, vertices: {vertex_amount}")
+                instance_path = f"maxcut-instances/{set_name}/{instance_name}"
+                for cx in variations:
+                    print(f"Crossover: {cx}")
+                    for _ in range(runs):
+                        #print(f"Run {run}/{runs_per_pop}")
+                        fitness = FitnessFunction.MaxCut(instance_path)
+                        g_a = GeneticAlgorithm(fitness, population_size, variation=cx,
+                                                             evaluation_budget=evaluation_budget, verbose=False,  save_stats=False, print_final_results=False)
+                        _ , num_evaluations, num_converged = g_a.run()
+
+                        # add data to dataframe
+                        dataframe['Instance'].append(f"{vertex_amount}_{instance_name}".replace('.txt',''))
+                        dataframe['Evaluation amount'].append(num_evaluations)
+                        dataframe['Crossover type'].append(cx)
+                        dataframe['Evaluations at convergence'].append(num_converged)
+
+
+        dataframe_evaluations = {key: dataframe[key] for key in evaluation_keys}
+        dataframe_convergence = {key: dataframe[key] for key in convergence_keys}
+        Plotting.boxplot_dataframe_by_set(dataframe_evaluations, f"regular_pop_{population_size}" ,set_name)
+        Plotting.boxplot_dataframe_by_set(dataframe_convergence, f"convergence_pop_{population_size}", set_name)
+
+
+
+
+
+MODE = 'set'
 
 if __name__ == "__main__":
-    # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
-    variations = [ "UniformCrossoverLocalSearch", "GreedyMutCrossover", "GreedyCrossover",  "GreedyCrossoverLocalSearch", "GreedyMutCrossoverLocalSearch"]
+
+    variations = [ "UniformCrossover", "OnePointCrossover", "TwoPointCrossover" ,"GreedyCrossover", "GreedyMutCrossoverLocalSearch"]
     evaluation_dictionary = {}
     evaluation_budget = 100000
     population_size = 1000
-    instances = get_instances(amount=1, add_low=True, add_mid=True)
-    # inst = "maxcut-instances/setE/n0000040i04.txt"
-    for vertex_amount, set_name, instance_names in instances:
-        print(f"Running: {set_name}: {instance_names}, with {vertex_amount} vertices")
-        for instance_name in instance_names:
-            instance_path = f"maxcut-instances/{set_name}/{instance_name}"
-            print(instance_name)
-            if set_name != "setA" and set_name != "setB":
-                calculate_avg_eval_to_opt_diff_population(variations, evaluation_budget, instance_path, (vertex_amount, set_name, instance_name.replace('.txt', '')), 5, 30, 1000, 10)
+    runs = 10
+    if MODE == 'pop':
+        # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
+        instances = get_instances(amount=1, add_low=True, add_mid=True)
+        # inst = "maxcut-instances/setE/n0000040i04.txt"
+        for vertex_amount, set_name, instance_names in instances:
+            print(f"Running: {set_name}: {instance_names}, with {vertex_amount} vertices")
+            for instance_name in instance_names:
+                instance_path = f"maxcut-instances/{set_name}/{instance_name}"
+                print(instance_name)
+                calculate_avg_eval_to_opt_diff_population(variations, evaluation_budget, instance_path, (vertex_amount, set_name, instance_name.replace('.txt', '')), runs_per_pop=5, min_pop=30, max_pop=1000, num_pop_thresholds=10)
+
+    elif MODE == 'set':
+        instances = get_instance_sets(amount=3, add_mid=True)
+        calculate_eval_diff_per_crossover_over_set(variations, evaluation_budget, population_size, runs, instances )
             #for cx in variations:
             #
             #    with open("output-{}.txt".format(cx),"w") as f:

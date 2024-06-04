@@ -3,6 +3,8 @@ import string
 from enum import Enum
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 from scipy.stats import gaussian_kde
 
@@ -25,6 +27,64 @@ def keep_isalnum_else_underscore(char):
        return char
     else:
         return "_"
+
+
+def boxplot_dataframe(dataframe, name, instance):
+    plt.clf()
+    plt.figure(figsize=(12,6))
+    # set figure size so legend not too big
+    df = pd.DataFrame(dataframe)
+    x_name = df.columns[0]
+    y_name = df.columns[1]
+    hue_name = df.columns[2]
+
+    sns.boxplot(x=x_name, y=y_name, hue=hue_name, data=df, gap=.1, medianprops={"color": "r", "linewidth": 2},)
+
+    plt.title(f'Evaluations per crossover by population sizes, instance: {instance}')
+    plt.xlabel(x_name)
+    plt.xticks(rotation=90,fontsize=9)
+    plt.ylabel(y_name)
+    plt.yticks(fontsize=9)
+
+
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+    graph_name = f'{name}_evaluations_per_crossover_by_population_{instance[0]}_{instance[1]}_{instance[2]}'
+
+    if not os.path.exists(f"graphs/evaluations_based_on_pop/{instance[1]}/{instance[2]}"):
+        os.makedirs(f"graphs/evaluations_based_on_pop/{instance[1]}/{instance[2]}")
+
+    plt.savefig(f"graphs/evaluations_based_on_pop/{instance[1]}/{instance[2]}/{graph_name}", bbox_inches='tight')
+
+
+def boxplot_dataframe_by_set(dataframe, name, set_name):
+    plt.clf()
+    plt.figure(figsize=(12,6))
+    # set figure size so legend not too big
+    df = pd.DataFrame(dataframe)
+    x_name = df.columns[0]
+    y_name = df.columns[1]
+    hue_name = df.columns[2]
+
+    sns.boxplot(x=x_name, y=y_name, hue=hue_name, data=df, gap=.1, medianprops={"color": "r", "linewidth": 2},)
+
+    plt.title(f'Evaluations per crossover on set: {set_name}')
+    plt.xlabel(x_name)
+    plt.xticks(rotation=90,fontsize=9)
+    plt.ylabel(y_name)
+    plt.yticks(fontsize=9)
+
+
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+    graph_name = f'{name}_evaluations_per_crossover_on_{set_name}'
+
+    if not os.path.exists(f"graphs/set_evaluations/{set_name}"):
+        os.makedirs(f"graphs/set_evaluations/{set_name}")
+
+    plt.savefig(f"graphs/set_evaluations/{set_name}/{graph_name}", bbox_inches='tight')
+
+
 
 def plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population_size, evaluations_budget, instance):
     plt.clf()
