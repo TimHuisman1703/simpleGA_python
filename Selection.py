@@ -21,3 +21,10 @@ def tournament_selection( population, offspring ):
 	assert( len(selection) == len(population) )
 
 	return selection
+
+
+def best_solutions_only(population, offspring):
+	combined = population + offspring
+	k = len(population)
+	return sorted(combined, key=lambda x: x.fitness, reverse=True)[:k]
+

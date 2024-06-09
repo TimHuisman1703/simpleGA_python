@@ -4,6 +4,7 @@ from functools import partial
 
 import Variation
 import Selection
+import Offspring
 from FitnessFunction import FitnessFunction
 from Individual import Individual
 from RunStats import RunStats
@@ -16,6 +17,7 @@ class GeneticAlgorithm:
         self.evaluation_budget = 1000000
         self.variation_operator = Variation.uniform_crossover
         self.selection_operator = Selection.tournament_selection
+        self.offspring_operator = Offspring.default
         self.population_size = population_size
         self.population = []
         self.number_of_generations = 0
@@ -41,6 +43,21 @@ class GeneticAlgorithm:
         if "print_final_results" in options:
             self.print_final_results = options["print_final_results"]
 
+        if 'selection' in options:
+            if options['selection'] == 'TournamentSelection':
+                self.selection_operator = Selection.tournament_selection
+            elif options['selection'] == 'BestSolutionsOnly':
+                self.selection_operator = Selection.best_solutions_only
+
+        if 'offspring' in options:
+            if options['offspring'] == 'Default':
+                self.offspring_operator = Offspring.default
+            elif options['offspring'] == 'Qinghua':
+                self.offspring_operator = Offspring.qinghua_operator
+
+        if "save_stats" in options:
+            self.should_save_stats = options["save_stats"]
+
     def initialize_variation(self, variation_description):
         if   "UniformCrossover" in variation_description:
             self.variation_operator = Variation.uniform_crossover
@@ -52,11 +69,14 @@ class GeneticAlgorithm:
             self.variation_operator = partial(Variation.greedy_crossover, self.fitness)
         elif "GreedyMutCrossover" in variation_description:
             self.variation_operator = partial(Variation.greedy_crossover_with_mutation, self.fitness)
+        elif "Qinghua" in variation_description:
+            self.variation_operator = partial(Variation.qinghua_operator, self.fitness)
 
         if "LocalSearch" in variation_description:
             self.apply_local_search_to_offspring = True
         else:
             self.apply_local_search_to_offspring = False
+
 
     def initialize_population(self):
         self.population = [Individual.initialize_uniform_at_random(self.fitness.dimensionality) for i in
@@ -65,15 +85,10 @@ class GeneticAlgorithm:
             self.fitness.evaluate(individual)
 
     def make_offspring(self):
-        offspring = []
-        order = np.random.permutation(self.population_size)
-        for i in range(len(order) // 2):
-            offspring = offspring + self.variation_operator(self.population[order[2 * i]],
-                                                            self.population[order[2 * i + 1]])
+        offspring = self.offspring_operator(self.population, self.variation_operator)
         if self.apply_local_search_to_offspring:
             for individual in offspring:
                 Variation.local_search_individual(self.fitness, individual)
-
         for individual in offspring:
             self.fitness.evaluate(individual)
         return offspring
