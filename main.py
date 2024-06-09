@@ -101,7 +101,7 @@ MODE = 'pop'
 if __name__ == "__main__":
     # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
     setups = [
-        {'variation': 'TwoPointCrossover'},
+        # {'variation': 'TwoPointCrossover'},
         {'variation': 'GreedyCrossover'},
         {'variation': 'GreedyMutCrossover'},
         {'variation': 'UniformCrossover'},
@@ -109,6 +109,11 @@ if __name__ == "__main__":
         {'variation': 'Qinghua_LocalSearch',
          'offspring': 'Qinghua',
          'selection': 'BestSolutionsOnly'},
+        {
+            'variation': 'GreedyCrossover',
+            # 'selection': 'FitnessSharing',
+            # 'offspring': 'SimulatedAnnealing',
+            'mutation': 'AdaptiveMutation'},
         {'variation': 'ECGA'}
     ]
     evaluation_dictionary = {}

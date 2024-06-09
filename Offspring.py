@@ -1,6 +1,7 @@
 import numpy as np
 from Utils import hamming_distance
-
+import FitnessFunction
+import Individual
 
 def default(population, variation_operator):
     offspring = []
@@ -28,3 +29,29 @@ def qinghua_operator(population, variation_operator):
             if distances[order[i]][order[j]] >= d_hat:  # >= instead of > to avoid problems when all parents are the same
                 return [variation_operator(p_a, p_b)]
     raise ValueError("No suitable parents found")
+
+def simulated_annealing(fitness: FitnessFunction, individual: Individual, max_iterations=100, initial_temp=100, cooling_rate=0.99):
+    current_genotype = individual.genotype.copy()
+    current_fitness = individual.fitness
+    temp = initial_temp
+
+    for _ in range(max_iterations):
+        if temp <= 0:
+            break
+        new_genotype = current_genotype.copy()
+        i = np.random.randint(len(new_genotype))
+        new_genotype[i] = 1 - new_genotype[i]
+        new_fitness = fitness.partial_evaluate(current_genotype, i, new_genotype[i])
+            
+        if new_fitness > current_fitness or np.random.rand() < np.exp((new_fitness - current_fitness) / temp):
+            current_genotype = new_genotype
+            current_fitness = new_fitness
+            
+        temp *= cooling_rate
+        
+    individual.genotype = current_genotype
+    individual.fitness = current_fitness
+    return individual
+
+def simulated_annealing_wrapper(fitness, individual):
+    return [simulated_annealing(fitness, individual)]

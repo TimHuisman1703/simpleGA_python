@@ -5,6 +5,7 @@ from functools import partial
 import Variation
 import Selection
 import Offspring
+import AdaptiveMutation
 from FitnessFunction import FitnessFunction
 from Individual import Individual
 from RunStats import RunStats
@@ -27,6 +28,7 @@ class GeneticAlgorithm:
         self.should_save_stats = False
         self.apply_local_search_to_offspring = False
         self.evaluation_budget_converged = 1000000
+        self.adaptive_mutation = True
 
         if "verbose" in options:
             self.verbose = options["verbose"]
@@ -48,12 +50,21 @@ class GeneticAlgorithm:
                 self.selection_operator = Selection.tournament_selection
             elif options['selection'] == 'BestSolutionsOnly':
                 self.selection_operator = Selection.best_solutions_only
+            elif options['selection'] == 'FitnessSharing':
+                self.selection_operator = Selection.fitness_sharing_selection
+
+        if "mutation" in options:
+            if options["mutation"] == "AdaptiveMutation":
+                self.mutation_operator = AdaptiveMutation.adaptive_mutation_wrapper
 
         if 'offspring' in options:
             if options['offspring'] == 'Default':
                 self.offspring_operator = Offspring.default
             elif options['offspring'] == 'Qinghua':
                 self.offspring_operator = Offspring.qinghua_operator
+            elif options['offspring'] == 'SimulatedAnnealing':
+                self.offspring_operator = partial(Offspring.simulated_annealing_wrapper, self.fitness)
+
 
         if "save_stats" in options:
             self.should_save_stats = options["save_stats"]
@@ -89,6 +100,9 @@ class GeneticAlgorithm:
         if self.apply_local_search_to_offspring:
             for individual in offspring:
                 Variation.local_search_individual(self.fitness, individual)
+        if hasattr(self, 'mutation_operator'):
+            for individual in offspring:
+                individual = self.mutation_operator(individual, self.population, self.fitness)
         for individual in offspring:
             self.fitness.evaluate(individual)
         return offspring
@@ -98,7 +112,7 @@ class GeneticAlgorithm:
 
     def print_statistics(self):
         fitness_list = [ind.fitness for ind in self.population]
-        print("\033[31mGeneration {}\033[0m: Best_fitness: {:.1f}, Avg._fitness: {:.3f}, Nr._of_evaluations: {}".format(
+        print("Generation {}: Best_fitness: {:.1f}, Avg._fitness: {:.3f}, Nr._of_evaluations: {}".format(
             self.number_of_generations, max(fitness_list), np.mean(fitness_list), self.fitness.number_of_evaluations))
 
     def check_converged(self):
@@ -130,7 +144,7 @@ class GeneticAlgorithm:
                 if (self.verbose and self.number_of_generations % 100 == 0):
                     self.print_statistics()
 
-                if self.fitness.number_of_evaluations < self.evaluation_budget_converged and self.check_converged(): 
+                if self.fitness.number_of_evaluations < self.evaluation_budget_converged and self.check_converged():
                     self.evaluation_budget_converged = self.fitness.number_of_evaluations
 
                 offspring = self.make_offspring()
@@ -142,7 +156,7 @@ class GeneticAlgorithm:
         except ValueToReachFoundException as exception:
             self.save_stats_optimal_reached()
 
-            if self.fitness.number_of_evaluations < self.evaluation_budget_converged: 
+            if self.fitness.number_of_evaluations < self.evaluation_budget_converged:
                 self.evaluation_budget_converged = self.fitness.number_of_evaluations
 
             if (self.print_final_results):

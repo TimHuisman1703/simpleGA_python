@@ -28,3 +28,23 @@ def best_solutions_only(population, offspring):
 	k = len(population)
 	return sorted(combined, key=lambda x: x.fitness, reverse=True)[:k]
 
+def fitness_sharing(population, alpha=1):
+    def calculate_shared_fitness(individual: Individual, population):
+        niche_count = 0
+        for other_individual in population:
+            distance = np.sum(individual.genotype != other_individual.genotype)
+            if distance < 1:
+                niche_count += 1 - (distance / 1)**alpha
+        return individual.fitness / niche_count
+
+    for individual in population:
+        individual.shared_fitness = calculate_shared_fitness(individual, population)
+
+    return sorted(population, key=lambda x: x.shared_fitness, reverse=True)
+
+def fitness_sharing_selection(population, offspring, selection_size=4):
+    combined_population = population + offspring
+    shared_population = fitness_sharing(combined_population)
+    return shared_population[:selection_size]
+
+
