@@ -10,11 +10,10 @@ directory = './maxcut-instances'
 def get_instances(seed=seed, amount=num_select, add_low=False, add_mid=False, add_high=False):
     instance_dict = select_instances(seed)
     instances = []
-    
+
     for set_inst in instance_dict.keys():
         # per each number of vertices, get the corresponding files
         vertices = instance_dict[set_inst]
-        print(f'Set {set_inst} has the vertices {sorted(vertices, key=lambda it: it[0])}')
         sorted_vertices= list(sorted(vertices, key=lambda it: it[0]))
 
         if add_low:
@@ -38,7 +37,7 @@ def get_instances(seed=seed, amount=num_select, add_low=False, add_mid=False, ad
 def get_instance_sets(seed=seed, amount=num_select, add_low=False, add_mid=False, add_high=False):
     instance_dict = select_instances(seed)
     instances = {}
-    
+
     for set_inst in instance_dict.keys():
         # per each number of vertices, get the corresponding files
         vertices = instance_dict[set_inst]
@@ -81,7 +80,6 @@ def select_instances(seed=seed):
                     if v not in vertices:
                         vertices[v] = []
                     vertices[v].append(file)
-        print(f'Set {set_inst} has the vertices {sorted(list(vertices.keys()))}')
 
         vertices = list(sorted(vertices.items(), key=lambda it: it[0]))
         selected_vertices = []
