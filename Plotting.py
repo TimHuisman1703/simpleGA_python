@@ -117,7 +117,8 @@ def plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population
     instance_name = f"{instance[1]}_{instance[2]}_vertices={instance[0]}".replace('.txt','')
     if not os.path.exists("graphs/"):
         os.makedirs("graphs")
-    plt.savefig(f"graphs/evaluation_plot_crossovers={crossovers}_pop_size={population_size}_budget={evaluations_budget}_instance={instance_name}", bbox_inches='tight')
+    name = f"graphs/_pop_size={population_size}_budget={evaluations_budget}_instance={instance_name}"
+    plt.savefig(name, bbox_inches='tight')
 
     # plt.show()
 

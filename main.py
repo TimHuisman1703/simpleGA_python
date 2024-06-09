@@ -95,7 +95,7 @@ def calculate_eval_diff_per_crossover_over_set(variations, evaluation_budget, po
 
 
 
-MODE = 'set'
+MODE = 'pop'
 
 if __name__ == "__main__":
     # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
@@ -138,12 +138,12 @@ if __name__ == "__main__":
                                                              verbose=False,
                                                              save_stats=True,
                                                              **setup)
-                            best_fitness, num_evaluations = genetic_algorithm.run()
+                            best_fitness, num_evaluations, did_converge = genetic_algorithm.run()
                             runs.append(genetic_algorithm.statistics)
                             if best_fitness == fitness.value_to_reach:
                                 num_success += 1
                             num_evaluations_list.append(num_evaluations)
-                        plot_runs_per_generation(runs, [f"{i}" for i in range(len(runs))], StatType.BEST_FITNESS, f"Best fitness per generation across runs for {cx}\nWith {num_success}/{num_runs} reaching the optimum", set_name, f"{vertex_amount}_{instance_name}")
+                        plot_runs_per_generation(runs, [f"{i}" for i in range(len(runs))], StatType.BEST_FITNESS, f"Best fitness per generation across runs for {setup['variation']}\nWith {num_success}/{num_runs} reaching the optimum", set_name, f"{vertex_amount}_{instance_name}")
 
                         evaluation_dictionary[setup['variation']] = num_evaluations_list
                         print("{}/{} runs successful".format(num_success,num_runs))
