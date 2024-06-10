@@ -65,6 +65,9 @@ class GeneticAlgorithm:
             elif options['offspring'] == 'SimulatedAnnealing':
                 self.offspring_operator = partial(Offspring.simulated_annealing_wrapper, self.fitness)
 
+        if 'LocalSearch' in options:
+            self.apply_local_search_to_offspring = options["LocalSearch"]
+
 
         if "save_stats" in options:
             self.should_save_stats = options["save_stats"]

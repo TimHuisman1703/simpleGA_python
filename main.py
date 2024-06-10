@@ -1,6 +1,12 @@
+import itertools
+import time
+import uuid
+from pprint import pprint
+
 import numpy as np
 
 import Plotting
+from Experiment_writer import ExperimentData, ExperimentSetup
 from select_instances import get_instances, get_instance_sets
 from Plotting import plot_evaluation_for_crossovers, plot_runs_per_generation, StatType
 from GeneticAlgorithm import GeneticAlgorithm
@@ -92,84 +98,182 @@ def calculate_eval_diff_per_crossover_over_set(variations, evaluation_budget, po
         Plotting.boxplot_dataframe_by_set(dataframe_evaluations, f"regular_pop_{population_size}" ,set_name)
         Plotting.boxplot_dataframe_by_set(dataframe_convergence, f"convergence_pop_{population_size}", set_name)
 
+unique_batch_id = uuid.uuid4()
+
+def run_configurations_and_save(setUps: [ExperimentSetup]):
+    ExperimentData.remember_locally_done_batch(unique_batch_id)
+    counter_setup = 0
+    for su in setUps:
+        counter_setup += 1
+        instance_path = f"maxcut-instances/{su.set_name}/{su.instance}"
+        options = {}
+        if su.selection is not None:
+            options['selection'] = su.selection
+        if su.mutation is not None:
+            options["mutation"] = su.mutation
+        if su.offspring is not None:
+            options['offspring'] = su.offspring
+        print(f"Running set-up {counter_setup}/{len(setUps)}")
+        print(pprint(vars(su)))
+        counter_rerun = 0
+        for _ in range(su.times_repeat):
+            counter_rerun += 1
+            print(f"Running run {counter_rerun}/{su.times_repeat}")
+            fitness = FitnessFunction.MaxCut(instance_path)
+            if su.crossover == "ECGA":
+                genetic_algorithm = ExtendedCompactGeneticAlgorithm(fitness,
+                                                                    su.population_size,
+                                                                    evaluation_budget=su.max_budget,
+                                                                    verbose=False,
+                                                                    save_stats=False,
+                                                                    **options)
+            else:
+                genetic_algorithm = GeneticAlgorithm(fitness,
+                                                     su.population_size,
+                                                     evaluation_budget=su.max_budget,
+                                                     verbose=False,
+                                                     save_stats=False,
+                                                     **options)
+
+            start_time = time.time()
+            best_fitness, num_evaluations, has_converged = genetic_algorithm.run()
+            time_taken = time.time() - start_time
+            if best_fitness == fitness.value_to_reach:
+                has_found_opt = True
+            else:
+                has_found_opt = False
+            if "LocalSearch" in su.crossover:
+                was_local_search_used = True
+            elif su.local_search is not None:
+                was_local_search_used = su.local_search
+            else:
+                was_local_search_used = False
+            experiment_data = ExperimentData(su.crossover, was_local_search_used, su.mutation, su.selection, su.offspring,
+                                             su.population_size, su.max_budget, su.set_name,
+                                             su.number_of_vertices, su.instance, best_fitness,
+                                             has_found_opt, num_evaluations, time_taken,
+                                             {}, unique_batch_id)
+            experiment_data.save_run()
+
+def generate_set_ups():
+    # Does a cartesian product of all params for now
+    instances = get_instances(amount=3, add_mid=True)
+    params = {
+        "max_budget" : [100000],
+        "population_size" : [100],
+        "crossover": ["TwoPointCrossover", "GreedyCrossover", "GreedyMutCrossover", "UniformCrossover", "Qinghua", "ECGA" ],
+        "mutation": [None],
+        "selection": [None],
+        "offspring": [None],
+        "local_search": [False, True],
+        "instance": instances,
+        "additional_data": [None],
+        "times": [10]
+    }
 
 
+    keys = params.keys()
+    values = params.values()
+    cross_product = itertools.product(*values)
 
+    l_params = [dict(zip(keys, combination)) for combination in cross_product]
+    configurations = []
+
+    for param_set in l_params:
+        for instance_name in param_set["instance"][2]:
+            configuration = ExperimentSetup(param_set["crossover"],
+                                            param_set["local_search"],
+                                            param_set["mutation"],
+                                            param_set["selection"],
+                                            param_set["offspring"],
+                                            param_set["population_size"],
+                                            param_set["max_budget"],
+                                            param_set["instance"][1],
+                                            param_set["instance"][0],
+                                            instance_name,
+                                            param_set["times"],
+                                            param_set["additional_data"]
+                                            )
+            configurations.append(configuration)
+
+
+    return configurations
 
 MODE = 'pop'
 
 if __name__ == "__main__":
     # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
-    setups = [
-        # {'variation': 'TwoPointCrossover'},
-        {'variation': 'GreedyCrossover'},
-        {'variation': 'GreedyMutCrossover'},
-        {'variation': 'UniformCrossover'},
-        {'variation': 'OnePointCrossover'},
-        {'variation': 'Qinghua_LocalSearch',
-         'offspring': 'Qinghua',
-         'selection': 'BestSolutionsOnly'},
-        {
-            'variation': 'GreedyCrossover',
-            # 'selection': 'FitnessSharing',
-            # 'offspring': 'SimulatedAnnealing',
-            'mutation': 'AdaptiveMutation'},
-        {'variation': 'ECGA'}
-    ]
+    # setups = [
+    #     # {'variation': 'TwoPointCrossover'},
+    #     {'variation': 'GreedyCrossover'},
+    #     {'variation': 'GreedyMutCrossover'},
+    #     {'variation': 'UniformCrossover'},
+    #     {'variation': 'OnePointCrossover'},
+    #     {'variation': 'Qinghua_LocalSearch',
+    #      'offspring': 'Qinghua',
+    #      'selection': 'BestSolutionsOnly'},
+    #     {
+    #         'variation': 'GreedyCrossover',
+    #         # 'selection': 'FitnessSharing',
+    #         # 'offspring': 'SimulatedAnnealing',
+    #         'mutation': 'AdaptiveMutation'},
+    #     {'variation': 'ECGA'}
+    # ]
     evaluation_dictionary = {}
     evaluation_budget = 100000
     population_size = 10
     instances = get_instances(amount=1)
+    # set_ups = generate_set_ups()
+    # run_configurations_and_save(set_ups)
+    setups = ExperimentData.load_runs()
+
     # inst = "maxcut-instances/setE/n0000040i04.txt"
-    for vertex_amount, set_name, instance_names in instances:
-        print("=" * 100 + "\n")
-        print(f"Running: {set_name}: {instance_names}, with {vertex_amount} vertices\n")
-        for instance_name in instance_names:
-            instance_path = f"maxcut-instances/{set_name}/{instance_name}"
-            for setup in setups:
-                variation = setup['variation']
-                print(f"{variation}")
-                with open("output-{}.txt".format(setup['variation']),"w") as f:
-                    num_evaluations_list = []
-                    num_runs = 10
-                    num_success = 0
-                    runs = []
-                    for i in range(num_runs):
-                        fitness = FitnessFunction.MaxCut(instance_path)
-
-                        if (variation == "ECGA"):
-                            genetic_algorithm = ExtendedCompactGeneticAlgorithm(fitness,
-                                                                                population_size,
-                                                                                evaluation_budget=evaluation_budget,
-                                                                                verbose=False,
-                                                                                save_stats=True,
-                                                                                **setup)
-                        else:
-                            genetic_algorithm = GeneticAlgorithm(fitness,
-                                                                 population_size,
-                                                                 evaluation_budget=evaluation_budget,
-                                                                 verbose=False,
-                                                                 save_stats=True,
-                                                                 **setup)
-
-                        best_fitness, num_evaluations = genetic_algorithm.run()
-                        runs.append(genetic_algorithm.statistics)
-                        if best_fitness == fitness.value_to_reach:
-                            num_success += 1
-                        num_evaluations_list.append(num_evaluations)
-                    plot_runs_per_generation(runs,
-                                             [f"{i}" for i in range(len(runs))],
-                                             StatType.BEST_FITNESS,
-                                             f"Best fitness per generation across runs for {setup['variation']}\nWith {num_success}/{num_runs} reaching the optimum",
-                                             set_name,
-                                             f"{vertex_amount}_{instance_name}")
-
-                    evaluation_dictionary[setup['variation']] = num_evaluations_list
-                    print("{}/{} runs successful".format(num_success,num_runs))
-                    print("{} evaluations (median)".format(np.median(num_evaluations_list)))
-                    percentiles = np.percentile(num_evaluations_list,[10,50,90])
-                    f.write("{} {} {} {} {}\n".format(population_size,num_success/num_runs,percentiles[0],percentiles[1],percentiles[2]))
-                    print()
-
-            crossovers = [setup['variation'] for setup in setups]
-            plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population_size, evaluation_budget, (vertex_amount, set_name, instance_name))
+    # for vertex_amount, set_name, instance_names in instances:
+    #     print("=" * 100 + "\n")
+    #     print(f"Running: {set_name}: {instance_names}, with {vertex_amount} vertices\n")
+    #     for instance_name in instance_names:
+    #         instance_path = f"maxcut-instances/{set_name}/{instance_name}"
+    #         for setup in setups:
+    #             variation = setup['variation']
+    #             print(f"{variation}")
+    #             with open("output-{}.txt".format(setup['variation']),"w") as f:
+    #                 num_evaluations_list = []
+    #                 num_runs = 10
+    #                 num_success = 0
+    #                 runs = []
+    #                 for i in range(num_runs):
+    #                     fitness = FitnessFunction.MaxCut(instance_path)
+    #
+    #                     if (variation == "ECGA"):
+    #                         genetic_algorithm = ExtendedCompactGeneticAlgorithm(fitness,
+    #                                                                             population_size,
+    #                                                                             evaluation_budget=evaluation_budget,
+    #                                                                             verbose=False,
+    #                                                                             save_stats=True,
+    #                                                                             **setup)
+    #                     else:
+    #                         genetic_algorithm = GeneticAlgorithm(fitness,
+    #                                                              population_size,
+    #                                                              evaluation_budget=evaluation_budget,
+    #                                                              verbose=False,
+    #                                                              save_stats=True,
+    #                                                              **setup)
+    #
+    #                     best_fitness, num_evaluations = genetic_algorithm.run()
+    #                     runs.append(genetic_algorithm.statistics)
+    #                 plot_runs_per_generation(runs,
+    #                                          [f"{i}" for i in range(len(runs))],
+    #                                          StatType.BEST_FITNESS,
+    #                                          f"Best fitness per generation across runs for {setup['variation']}\nWith {num_success}/{num_runs} reaching the optimum",
+    #                                          set_name,
+    #                                          f"{vertex_amount}_{instance_name}")
+    #
+    #                 evaluation_dictionary[setup['variation']] = num_evaluations_list
+    #                 print("{}/{} runs successful".format(num_success,num_runs))
+    #                 print("{} evaluations (median)".format(np.median(num_evaluations_list)))
+    #                 percentiles = np.percentile(num_evaluations_list,[10,50,90])
+    #                 f.write("{} {} {} {} {}\n".format(population_size,num_success/num_runs,percentiles[0],percentiles[1],percentiles[2]))
+    #                 print()
+    #
+    #         crossovers = [setup['variation'] for setup in setups]
+    #         plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population_size, evaluation_budget, (vertex_amount, set_name, instance_name))

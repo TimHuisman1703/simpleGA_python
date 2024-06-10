@@ -114,6 +114,13 @@ class ExtendedCompactGeneticAlgorithm:
     def make_selection(self, offspring):
         return Selection.tournament_selection(self.population, offspring)
 
+    def check_converged(self):
+        fitness_list = [ind.fitness for ind in self.population]
+        best = max(fitness_list)
+        avg = np.mean(fitness_list)
+
+        return avg/best > 0.99
+
     def print_statistics(self):
         fitness_list = [ind.fitness for ind in self.population]
         print("\033[31mGeneration {}\033[0m: Best_fitness: {:.1f}, Avg._fitness: {:.3f}, Nr._of_evaluations: {}".format(
@@ -140,6 +147,9 @@ class ExtendedCompactGeneticAlgorithm:
                 if (self.verbose and self.number_of_generations % 100 == 0):
                     self.print_statistics()
 
+                if self.fitness.number_of_evaluations < self.evaluation_budget_converged and self.check_converged():
+                    self.evaluation_budget_converged = self.fitness.number_of_evaluations
+
                 self.model = self.mutate_model(self.model)
                 offspring = self.make_offspring()
                 selection = self.make_selection(offspring)
@@ -149,12 +159,16 @@ class ExtendedCompactGeneticAlgorithm:
                 self.print_statistics()
         except ValueToReachFoundException as exception:
             self.save_stats_optimal_reached()
+
+            if self.fitness.number_of_evaluations < self.evaluation_budget_converged:
+                self.evaluation_budget_converged = self.fitness.number_of_evaluations
+
             if (self.print_final_results):
 
                 print(exception)
                 print("Best fitness: {:.1f}, Nr._of_evaluations: {}".format(exception.individual.fitness,
                                                                             self.fitness.number_of_evaluations))
-            return exception.individual.fitness, self.fitness.number_of_evaluations
+            return exception.individual.fitness, self.fitness.number_of_evaluations, self.evaluation_budget_converged
         if (self.print_final_results):
             self.print_statistics()
-        return self.get_best_fitness(), self.fitness.number_of_evaluations
+        return self.get_best_fitness(), self.fitness.number_of_evaluations, self.evaluation_budget_converged
