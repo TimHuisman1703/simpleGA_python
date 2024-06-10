@@ -53,9 +53,9 @@ class ExperimentData:
             while True:
                 try:
                     runs.append(pickle.load(file))
-                    print("Run written")
+                    print("Run read")
                 except EOFError:
-                    print("Ooopsi, Daisy! Reading the file did not work for some reason. That's sad!")
+                    print("All the runs have been read")
                     break
         return runs
 

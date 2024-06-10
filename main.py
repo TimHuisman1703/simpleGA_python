@@ -229,7 +229,7 @@ if __name__ == "__main__":
     population_size = 10
     instances = get_instances(amount=1)
     set_ups = generate_set_ups()
-    run_configurations_and_save(set_ups)
+    #run_configurations_and_save(set_ups)
     setups = ExperimentData.load_runs()
     print("aaaaaaaaaaaaaaaaaa")
 
