@@ -152,16 +152,16 @@ def run_configurations_and_save(setUps: [ExperimentSetup]):
                                              su.population_size, su.max_budget, su.set_name,
                                              su.number_of_vertices, su.instance, best_fitness,
                                              has_found_opt, num_evaluations, time_taken,
-                                             {}, unique_batch_id)
+                                             {}, unique_batch_id, has_converged)
             experiment_data.save_run()
 
 def generate_set_ups():
     # Does a cartesian product of all params for now
-    instances = get_instances(amount=3, add_mid=True)
+    instances = get_instances(amount=4, add_mid=True)
     params = {
         "max_budget" : [100000],
-        "population_size" : [100],
-        "crossover": ["TwoPointCrossover", "GreedyCrossover", "GreedyMutCrossover", "UniformCrossover", "Qinghua", "ECGA" ],
+        "population_size" : [10, 50, 100, 1000],
+        "crossover": ["TwoPointCrossover", "GreedyCrossover", "GreedyMutCrossover", "UniformCrossover"],
         "mutation": [None],
         "selection": [None],
         "offspring": [None],
@@ -179,7 +179,9 @@ def generate_set_ups():
     l_params = [dict(zip(keys, combination)) for combination in cross_product]
     configurations = []
 
+    #TODO: change budget, selection, population, offspring for Qinghua
     for param_set in l_params:
+        #TODO: Do only your number
         for instance_name in param_set["instance"][2]:
             configuration = ExperimentSetup(param_set["crossover"],
                                             param_set["local_search"],
@@ -223,9 +225,10 @@ if __name__ == "__main__":
     evaluation_budget = 100000
     population_size = 10
     instances = get_instances(amount=1)
-    # set_ups = generate_set_ups()
-    # run_configurations_and_save(set_ups)
+    set_ups = generate_set_ups()
+    run_configurations_and_save(set_ups)
     setups = ExperimentData.load_runs()
+    print("aaaaaaaaaaaaaaaaaa")
 
     # inst = "maxcut-instances/setE/n0000040i04.txt"
     # for vertex_amount, set_name, instance_names in instances:

@@ -20,7 +20,8 @@ class ExperimentSetup:
 
 class ExperimentData:
     # Set parameters that should not be added as None
-    def __init__(self, crossover, local_search, mutation, selection, offspring, population_size, max_budget, set_name, number_of_vertices, instance, final_value, is_optimal, budget_used, time_taken, additional_data, run_batch_id):
+    def __init__(self, crossover, local_search, mutation, selection, offspring, population_size, max_budget, set_name, number_of_vertices, instance, final_value, is_optimal, budget_used, time_taken, additional_data, run_batch_id, has_converged):
+        self.has_converged = has_converged
         self.offspring = offspring
         self.selection = selection
         self.crossover = crossover
