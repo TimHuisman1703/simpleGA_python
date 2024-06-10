@@ -181,8 +181,9 @@ def generate_set_ups():
 
     #TODO: change budget, selection, population, offspring for Qinghua
     for param_set in l_params:
-        #TODO: Do only your number
-        for instance_name in param_set["instance"][2]:
+        for (instance_index, instance_name) in enumerate(param_set["instance"][2]):
+            if instance_index != 2: #TODO: Do only your number
+                continue
             configuration = ExperimentSetup(param_set["crossover"],
                                             param_set["local_search"],
                                             param_set["mutation"],
