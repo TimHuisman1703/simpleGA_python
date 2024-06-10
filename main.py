@@ -113,6 +113,8 @@ def run_configurations_and_save(setUps: [ExperimentSetup]):
             options["mutation"] = su.mutation
         if su.offspring is not None:
             options['offspring'] = su.offspring
+        if su.local_search is not None:
+            options['LocalSearch'] = su.local_search
         print(f"Running set-up {counter_setup}/{len(setUps)}")
         print(pprint(vars(su)))
         counter_rerun = 0
