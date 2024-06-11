@@ -17,9 +17,11 @@ def qinghua_operator(population, variation_operator):
     distances = [[0for _ in range(len(population))] for _ in range(len(population))]
     for i in range(len(population)):
         for j in range(i + 1, len(population)):
-            distances[i][j] = hamming_distance(population[i].genotype, population[j].genotype)
+            distance = hamming_distance(population[i].genotype, population[j].genotype)
+            distances[i][j] = distance
+            distances[j][i] = distance
     d_hat = sum(sum(d) for d in distances)
-    d_hat = 2 * d_hat / (len(population) * (len(population) - 1))
+    d_hat = d_hat / len(population) ** 2
 
     order = np.random.permutation(len(population))
     for i in range(len(order)):
