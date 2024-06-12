@@ -229,11 +229,13 @@ if __name__ == "__main__":
     evaluation_dictionary = {}
     evaluation_budget = 100000
     population_size = 10
-    instances = get_instances(amount=1)
-    set_ups = generate_set_ups()
+    #set_ups = generate_set_ups()
     #run_configurations_and_save(set_ups)
-    setups = ExperimentData.load_runs()
-    print("aaaaaaaaaaaaaaaaaa")
+    combined_logs = ExperimentData.load_multiple_runs(["all_runs_0","all_runs_1", "all_runs_2", "all_runs_quing"])
+    grouped_data = ExperimentData.group_same_executions(combined_logs)
+    averaged_data = ExperimentData.find_average_values_in_grouped(grouped_data)
+    # The results are grouped in a nested dictionary indexed by [Set][Instance][Is_local_search][(offspring, selection, mutation, population_size, max_budget)]
+    grouped = ExperimentData.group_same_sets_then_instances(averaged_data)
 
     # inst = "maxcut-instances/setE/n0000040i04.txt"
     # for vertex_amount, set_name, instance_names in instances:
