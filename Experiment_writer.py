@@ -203,5 +203,15 @@ class ExperimentData:
                     left_cos_enough_data[set_name][instance] = in_dict1
         return left_cos_enough_data
 
+    @staticmethod
+    def filter_local_search(grouped, is_only_local_search_left):
+        filtered_local_search = create_nested_dict(3)
+        for set_name, in_dict in grouped.items():
+            for instance, in_dict1 in in_dict.items():
+                if is_only_local_search_left:
+                    filtered_local_search[set_name][instance][True] = in_dict1[True]
+                else:
+                    filtered_local_search[set_name][instance][False] = in_dict1[False]
+        return filtered_local_search
 
 

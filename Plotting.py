@@ -205,7 +205,6 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname):
     for instance, list_of_setups in sorted_by_name_performances_same_set.items():
         instances.append(instance)
         performances_by_group[instance] = list(map(lambda x: (x[1]["avg_budget_used"], x[1]["variance"]), list_of_setups))
-        print("sdasd")
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -221,14 +220,9 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname):
         y_positions = np.array(averages)
         errors = (np.power(np.array(variances), 0.5))
 
-        # Calculate the x positions for each pair within the group
-        group_x_positions = x_positions[i] + np.linspace(-group_width / 2, group_width / 2, len(y_positions))
-
-        # Plot the error bars
         group_x_positions = x_positions[i] + np.linspace(-group_width / 2 + strip_width / 2,
                                                          group_width / 2 - strip_width / 2, len(y_positions))
 
-        # Plot each instance with a specific color
         for j, (x, y, err) in enumerate(zip(group_x_positions, y_positions, errors)):
             ax.errorbar(x, y, yerr=err, fmt='o', color=colors[j], capsize=5,
                         label=f'{names[j]}' if i == 0 else "")
