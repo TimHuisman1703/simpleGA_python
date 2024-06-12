@@ -170,7 +170,8 @@ def generate_set_ups():
         "selection": [None],
         "offspring": [None],
         "local_search": [False, True],
-        "instance": instances,
+        "instance": [(50, "setC", [ "n0000050i08.txt"]),
+                     (40, "setE", [ "n0000040i09.txt"])],
         "additional_data": [None],
         "times": [10]
     }
@@ -186,8 +187,8 @@ def generate_set_ups():
     #TODO: change budget, selection, population, offspring for Qinghua
     for param_set in l_params:
         for (instance_index, instance_name) in enumerate(param_set["instance"][2]):
-            if instance_index != 2: #TODO: Do only your number
-                continue
+            # if instance_index != 2: #TODO: Do only your number
+            #     continue
             configuration = ExperimentSetup(param_set["crossover"],
                                             param_set["local_search"],
                                             param_set["mutation"],
@@ -226,16 +227,34 @@ if __name__ == "__main__":
     #         'mutation': 'AdaptiveMutation'},
     #     {'variation': 'ECGA'}
     # ]
-    evaluation_dictionary = {}
-    evaluation_budget = 100000
-    population_size = 10
-    #set_ups = generate_set_ups()
-    #run_configurations_and_save(set_ups)
-    combined_logs = ExperimentData.load_multiple_runs(["all_runs_0","all_runs_1", "all_runs_2", "all_runs_quing"])
+    # evaluation_dictionary = {}
+    # evaluation_budget = 100000
+    # population_size = 10
+
+    # configures experiments
+    # set_ups = generate_set_ups()
+    # run_configurations_and_save(set_ups)
+
+
+    # data processing
+    combined_logs = ExperimentData.load_multiple_runs(["all_runs_0","all_runs_1", "all_runs_2", "all_runs_missing", "all_runs_quing"])
     grouped_data = ExperimentData.group_same_executions(combined_logs)
     averaged_data = ExperimentData.find_average_values_in_grouped(grouped_data)
     # The results are grouped in a nested dictionary indexed by [Set][Instance][Is_local_search][(offspring, selection, mutation, population_size, max_budget)]
     grouped = ExperimentData.group_same_sets_then_instances(averaged_data)
+    best_by_population = ExperimentData.leave_best_performing_population(grouped)
+    grouped_remove_small_test_size = ExperimentData.remove_small_test_size(best_by_population)
+    sorted_by_name = ExperimentData.sort_by_crossover(grouped_remove_small_test_size)
+
+
+    Plotting.plot_performances_on_one_set(sorted_by_name, "setD")
+
+
+
+
+
+
+    #print("SDaasd")
 
     # inst = "maxcut-instances/setE/n0000040i04.txt"
     # for vertex_amount, set_name, instance_names in instances:

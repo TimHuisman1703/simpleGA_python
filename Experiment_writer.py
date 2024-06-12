@@ -4,6 +4,7 @@ import time
 from itertools import groupby
 from operator import itemgetter
 from collections import defaultdict
+from statistics import variance
 
 def create_nested_dict(n):
     if n <= 1:
@@ -54,7 +55,7 @@ class ExperimentData:
     def save_run(self):
         if not os.path.exists(f"runs"):
             os.makedirs(f"runs")
-        with open("runs/all_runs_2.log", 'ab') as file:
+        with open("runs/all_runs_missing.log", 'ab') as file:
             pickle.dump(self, file)
 
     @staticmethod
@@ -101,6 +102,7 @@ class ExperimentData:
             times_opt_found = sum(obj['is_optimal'] for obj in group_list)
             avg_budget_used = sum(obj['budget_used'] for obj in group_list) / len(group_list)
             avg_time_taken = sum(obj['time_taken'] for obj in group_list) / len(group_list)
+            var = variance((obj['budget_used'] for obj in group_list))
             averaged_run_data_dict[key] = {
                 "total_experiments" : total_experiments,
                 "avg_has_converged" : avg_has_converged,
@@ -108,6 +110,7 @@ class ExperimentData:
                 "times_opt_found" : times_opt_found,
                 "avg_budget_used" : avg_budget_used,
                 "avg_time_taken": avg_time_taken,
+                "variance": var
             }
 
         return averaged_run_data_dict
@@ -128,6 +131,77 @@ class ExperimentData:
         for name in names_of_runs:
             concatenated_result.extend(ExperimentData.load_runs_with_name(name))
         return concatenated_result
+
+    @staticmethod
+    def leave_best_performing_population(grouped):
+        nested_dict = create_nested_dict(5)
+        for set_name, in_dict in grouped.items():
+            for instance, in_dict1 in in_dict.items():
+                for local_search, in_dict2 in in_dict1.items():
+                    for crossover, in_dict3 in in_dict2.items():
+                        smallest_avg_budget = 10000000000000000000000000000
+                        best_configuration = None
+                        for config, in_dict4 in in_dict3.items():
+                            if in_dict4["avg_budget_used"] < smallest_avg_budget:
+                                smallest_avg_budget = in_dict4["avg_budget_used"]
+                                best_configuration = in_dict4
+                                best_configuration["offspring"] = config[0] # (offspring, selection, mutation, population_size, max_budget)
+                                best_configuration["selection"] = config[1]
+                                best_configuration["mutation"] = config[2]
+                                best_configuration["population_size"] = config[3]
+                                best_configuration["max_budget"] = config[4]
+                        nested_dict[set_name][instance][local_search][crossover] = best_configuration
+        return nested_dict
+
+    @staticmethod
+    def sort_by_performance(grouped):
+        nested_dict = create_nested_dict(2)
+        for set_name, in_dict in grouped.items():
+            for instance, in_dict1 in in_dict.items():
+                performances_for_same_instance = []
+                for local_search, in_dict2 in in_dict1.items():
+                    for crossover, in_dict3 in in_dict2.items():
+                        performances_for_same_instance.append(((crossover, local_search), in_dict3))
+                sorted_values = sorted(performances_for_same_instance, key=lambda x: x[1]["avg_budget_used"], reverse=False)
+                # print(f"For {instance} in {set_name} the best performing configurations are: ")
+                # for config in sorted_values:
+                #     print(f"Crossover {config[0][0]} with LS={config[0][1]} pop={config[1]['population_size']} and avg evals at {config[1]['avg_budget_used']}")
+                # print("")
+                nested_dict[set_name][instance] = sorted_values
+        return nested_dict
+
+    @staticmethod
+    def sort_by_crossover(grouped):
+        nested_dict = create_nested_dict(2)
+        for set_name, in_dict in grouped.items():
+            for instance, in_dict1 in in_dict.items():
+                performances_for_same_instance = []
+                for local_search, in_dict2 in in_dict1.items():
+                    for crossover, in_dict3 in in_dict2.items():
+                        performances_for_same_instance.append(((crossover, local_search), in_dict3))
+                sorted_values_by_name = sorted(performances_for_same_instance, key=lambda x: (x[0][0]+str(x[0][1])), reverse=False)
+                nested_dict[set_name][instance] = sorted_values_by_name
+        return nested_dict
+
+    @staticmethod
+    def remove_small_test_size(grouped):
+        correct_size = 0
+        sizes = create_nested_dict(2)
+        for set_name, in_dict in grouped.items():
+            for instance, in_dict1 in in_dict.items():
+                count_of_diff_crossovers = 0
+                for local_search, in_dict2 in in_dict1.items():
+                    for _, _ in in_dict2.items():
+                        count_of_diff_crossovers += 1
+                sizes[set_name][instance] = count_of_diff_crossovers
+                if set_name == "setD" and instance == "n0000040i07.txt":
+                    correct_size = count_of_diff_crossovers
+        left_cos_enough_data = create_nested_dict(2)
+        for set_name, in_dict in grouped.items():
+            for instance, in_dict1 in in_dict.items():
+                if sizes[set_name][instance] == correct_size:
+                    left_cos_enough_data[set_name][instance] = in_dict1
+        return left_cos_enough_data
 
 
 

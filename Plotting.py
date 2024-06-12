@@ -184,3 +184,63 @@ def plot_average_evaluations_for_different_population_sizes(population_sizes, av
         f"graphs/evaluations_based_on_pop/{instance[1]}/{instance[2]}/budget={evaluations_budget}_instance={instance_name}",
         bbox_inches='tight')
 
+def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname):
+    sorted_by_name_performances_same_set = sorted_by_name_performances_same_set[setname]
+    instances = []
+    performances_by_group = {}
+    names = []
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    for instance, list_of_setups in sorted_by_name_performances_same_set.items():
+
+        if len(names) > 0:
+            break
+        names = []
+        for setup in list_of_setups:
+            if setup[0][1]:
+                names.append(f"{setup[0][0]} with LS")
+            else:
+                names.append(f"{setup[0][0]}")
+    colors = colors[:12] = colors[:12]
+
+    for instance, list_of_setups in sorted_by_name_performances_same_set.items():
+        instances.append(instance)
+        performances_by_group[instance] = list(map(lambda x: (x[1]["avg_budget_used"], x[1]["variance"]), list_of_setups))
+        print("sdasd")
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Define the x positions for each group
+    x_positions = np.arange(len(instances))
+
+    group_width = 0.8
+    strip_width = group_width / 8  # Divide the group space into 8 strips
+
+    # Plot each group
+    for i, group in enumerate(instances):
+        averages, variances = zip(*performances_by_group[group])
+        y_positions = np.array(averages)
+        errors = (np.power(np.array(variances), 0.5))
+
+        # Calculate the x positions for each pair within the group
+        group_x_positions = x_positions[i] + np.linspace(-group_width / 2, group_width / 2, len(y_positions))
+
+        # Plot the error bars
+        group_x_positions = x_positions[i] + np.linspace(-group_width / 2 + strip_width / 2,
+                                                         group_width / 2 - strip_width / 2, len(y_positions))
+
+        # Plot each instance with a specific color
+        for j, (x, y, err) in enumerate(zip(group_x_positions, y_positions, errors)):
+            ax.errorbar(x, y, yerr=err, fmt='o', color=colors[j], capsize=5,
+                        label=f'{names[j]}' if i == 0 else "")
+
+    # Customize the plot
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(instances)
+    ax.set_xlabel('Instances')
+    ax.set_ylabel('Evaluations')
+    ax.legend(bbox_to_anchor=(1.1, 1), loc='upper left')
+    ax.set_title(f'Average evaluations to reach optimum for {setname}')
+    plt.tight_layout()
+    plt.show(bbox_inches='tight')
+    print("sdasd")
+
