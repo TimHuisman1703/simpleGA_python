@@ -218,11 +218,20 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname, 
     group_width = 0.8
     strip_width = group_width / 8  # Divide the group space into 8 strips
 
+    table = f'\\multirow{{{len(instances)}}}{{*}}{{{setname[-1]}}} '
     # Plot each group
     for i, group in enumerate(instances):
         averages, variances = zip(*performances_by_group[group])
         y_positions = np.array(averages)
         errors = (np.power(np.array(variances), 0.5))
+
+        table += f'& {group} & '
+        for j, (avg, err) in enumerate(zip(averages, errors)):
+            if y_positions[j] == min(y_positions):
+                table += f'\\textbf{{{avg:.1f}}} $\\pm$ \\textbf{{{err:.1f}}} & '
+            else:
+                table += f'{avg:.1f} $\\pm$ {err:.1f} & '
+        table = table[:-2] + '\\\\\n'
 
         group_x_positions = x_positions[i] + np.linspace(-group_width / 2 + strip_width / 2,
                                                          group_width / 2 - strip_width / 2, len(y_positions))
@@ -230,6 +239,8 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname, 
         for j, (x, y, err) in enumerate(zip(group_x_positions, y_positions, errors)):
             ax[index].errorbar(x, y, yerr=err, fmt='o', color=colors[j], capsize=5,
                         label=f'{names[j]}' if i == 0 else "")
+
+    print(table, end='\\hline\n')
 
     if create_plots:
         # Customize the plot
