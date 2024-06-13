@@ -184,12 +184,14 @@ def plot_average_evaluations_for_different_population_sizes(population_sizes, av
         f"graphs/evaluations_based_on_pop/{instance[1]}/{instance[2]}/budget={evaluations_budget}_instance={instance_name}",
         bbox_inches='tight')
 
-def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname):
+def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname, fig=None, ax=None, index=0, last_set=False):
+    create_plots = fig is None or ax is None
     sorted_by_name_performances_same_set = sorted_by_name_performances_same_set[setname]
     instances = []
     performances_by_group = {}
     names = []
     colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    plt.rcParams.update({'font.size': 14})
     for instance, list_of_setups in sorted_by_name_performances_same_set.items():
 
         if len(names) > 0:
@@ -206,7 +208,9 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname):
         instances.append(instance)
         performances_by_group[instance] = list(map(lambda x: (x[1]["avg_budget_used"], x[1]["variance"]), list_of_setups))
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    if create_plots:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax = [ax]
 
     # Define the x positions for each group
     x_positions = np.arange(len(instances))
@@ -224,17 +228,37 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname):
                                                          group_width / 2 - strip_width / 2, len(y_positions))
 
         for j, (x, y, err) in enumerate(zip(group_x_positions, y_positions, errors)):
-            ax.errorbar(x, y, yerr=err, fmt='o', color=colors[j], capsize=5,
+            ax[index].errorbar(x, y, yerr=err, fmt='o', color=colors[j], capsize=5,
                         label=f'{names[j]}' if i == 0 else "")
 
-    # Customize the plot
-    ax.set_xticks(x_positions)
-    ax.set_xticklabels(instances)
-    ax.set_xlabel('Instances')
-    ax.set_ylabel('Evaluations')
-    ax.legend(bbox_to_anchor=(1.1, 1), loc='upper left')
-    ax.set_title(f'Average evaluations to reach optimum for {setname}')
-    plt.tight_layout()
-    plt.show(bbox_inches='tight')
-    print("sdasd")
+    if create_plots:
+        # Customize the plot
+        ax[index].set_xticks(x_positions)
+        ax[index].set_xticklabels(instances)
+        ax[index].set_xlabel('Instances')
+        ax[index].set_ylabel('Evaluations')
+        ax[index].legend(loc='upper left', framealpha=0.5)
+        ax[index].set_title(f'Average evaluations to reach optimum for {setname}')
+        plt.tight_layout()
+        plt.savefig(f'graphs/results/{setname}_evaluations.png')
+        plt.show(bbox_inches='tight')
+    else:
+        # Customize the plot
+        ax[index].set_xticks(x_positions)
+        ax[index].set_xticklabels(instances)
+        ax[index].set_xlabel('Instances')
+        ax[index].set_ylabel('Evaluations')
+        ax[index].set_title(f'Average evaluations to reach optimum for {setname}')
+        ax[index].legend(loc='upper left', framealpha=0.5)
 
+def plot_performances_on_all_sets(sorted_by_name_performances_same_set):
+    # fig, ax = plt.subplots(1, 5, figsize=(6 * 5, 6))
+    for index, setname in enumerate(sorted(sorted_by_name_performances_same_set.keys())):
+        plot_performances_on_one_set(sorted_by_name_performances_same_set,
+                                     setname,
+                                     None,
+                                     None,
+                                     0,
+                                     index == len(sorted_by_name_performances_same_set.keys()) - 1)
+    # plt.tight_layout()
+    # plt.show()
