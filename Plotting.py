@@ -230,15 +230,13 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname, 
         table += f'& {group} & '
         for j, (avg, err) in enumerate(zip(averages, errors)):
             if y_positions[j] == min(y_positions):
-                table += f'\\textbf{{{avg:.1f}}} $\\pm$ \\textbf{{{err:.1f}}}$^{{\\dagger,*}}$ & '
+                table += f'\\textbf{{{avg:.1f}}} $\\pm$ \\textbf{{{err:.1f}}} & '
             else:
                 # perform ttest with standard deviation correction
                 stats = ttest_ind_from_stats(avg, err * np.sqrt(10/9), 10, best_avg, best_var * np.sqrt(10/9), 10, equal_var=False)
                 if stats.pvalue >= 0.05 and err < avg / 2:
                     # cannot reject the null hypothesis, the means can be equal
-                    table += f'{avg:.1f} $\\pm$ {err:.1f}$^{{\\dagger,*}}$& '
-                elif stats.pvalue >= 0.05:
-                    table += f'{avg:.1f} $\\pm$ {err:.1f}$^\\dagger$ & '
+                    table += f'{avg:.1f} $\\pm$ {err:.1f}$^{{\\dagger}}$& '
                 else:
                     table += f'{avg:.1f} $\\pm$ {err:.1f} & '
         table = table[:-2] + '\\\\\n'
