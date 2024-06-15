@@ -246,7 +246,7 @@ if __name__ == "__main__":
     grouped_remove_small_test_size = ExperimentData.remove_small_test_size(best_by_population)
 
     # version with local search filtered True - only local search, False - no local search
-    grouped_filtered_local_search = ExperimentData.filter_local_search(grouped_remove_small_test_size, True)
+    grouped_filtered_local_search = ExperimentData.filter_local_search(grouped_remove_small_test_size, False)
     sorted_by_name = ExperimentData.sort_by_crossover(grouped_filtered_local_search)
 
     # version without local search filtering
