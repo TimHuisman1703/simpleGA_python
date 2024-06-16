@@ -210,108 +210,44 @@ def generate_set_ups():
 MODE = 'pop'
 
 if __name__ == "__main__":
-    # "CustomCrossover", "UniformCrossover", "OnePointCrossover"
-    # setups = [
-    #     # {'variation': 'TwoPointCrossover'},
-    #     {'variation': 'GreedyCrossover'},
-    #     {'variation': 'GreedyMutCrossover'},
-    #     {'variation': 'UniformCrossover'},
-    #     {'variation': 'OnePointCrossover'},
-    #     {'variation': 'Qinghua_LocalSearch',
-    #      'offspring': 'Qinghua',
-    #      'selection': 'BestSolutionsOnly'},
-    #     {
-    #         'variation': 'GreedyCrossover',
-    #         # 'selection': 'FitnessSharing',
-    #         # 'offspring': 'SimulatedAnnealing',
-    #         'mutation': 'AdaptiveMutation'},
-    #     {'variation': 'ECGA'}
-    # ]
-    # evaluation_dictionary = {}
-    # evaluation_budget = 100000
-    # population_size = 10
-
-    # configures experiments
+    # uncomment to run the actual experiments
     # set_ups = generate_set_ups()
     # run_configurations_and_save(set_ups)
 
-
-    # data processing
-    combined_logs = ExperimentData.load_multiple_runs(["all_runs_0","all_runs_1", "all_runs_2", "all_runs_missing", "all_runs_quing", "all_runs_adaptive"])
+    # uncomment to parse/plot the results for with/without local search
+    combined_logs = ExperimentData.load_multiple_runs(["all_runs_0", "all_runs_1", "all_runs_2", "all_runs_missing", "all_runs_quing"])
     grouped_data = ExperimentData.group_same_executions(combined_logs)
     averaged_data = ExperimentData.find_average_values_in_grouped(grouped_data)
-    filtered_contains_multiple_mutations = ExperimentData.filter_more_than_one_mutation_type(averaged_data)
     # The results are grouped in a nested dictionary indexed by [Set][Instance][Is_local_search][(offspring, selection, mutation, population_size, max_budget)]
-    grouped = ExperimentData.group_same_sets_then_instances_then_mutation(filtered_contains_multiple_mutations)
-    best_by_population = ExperimentData.leave_best_performing_population_mutation(grouped)
-    # grouped_remove_small_test_size = ExperimentData.remove_small_test_size(best_by_population)
+    grouped = ExperimentData.group_same_sets_then_instances(averaged_data)
+    best_by_population = ExperimentData.leave_best_performing_population(grouped)
+    grouped_remove_small_test_size = ExperimentData.remove_small_test_size(best_by_population)
 
     # version with local search filtered True - only local search, False - no local search
-    grouped_filtered_adaptive_mut_only = ExperimentData.filter_adaptive_mutation(best_by_population, True)
-    grouped_filtered_no_adaptive_mut = ExperimentData.filter_adaptive_mutation(best_by_population, False)
-    sorted_by_name_adaptive_mut_only = ExperimentData.sort_by_crossover(grouped_filtered_adaptive_mut_only)
-    sorted_by_name_no_adaptive_mut_only = ExperimentData.sort_by_crossover(grouped_filtered_no_adaptive_mut)
-    sorted_by_name_both = ExperimentData.sort_by_crossover(best_by_population)
+    grouped_filtered_local_search = ExperimentData.filter_local_search(grouped_remove_small_test_size, True)
+    sorted_by_name = ExperimentData.sort_by_crossover(grouped_filtered_local_search)
 
     # version without local search filtering
     # sorted_by_name = ExperimentData.sort_by_crossover(grouped_remove_small_test_size)
 
-    # Plotting.plot_performances_on_one_set(sorted_by_name, "setE")
-    Plotting.plot_performances_on_all_sets(sorted_by_name_both)
+    Plotting.plot_performances_on_all_sets(sorted_by_name)
 
-
-
-
-
-    #print("SDaasd")
-
-    # inst = "maxcut-instances/setE/n0000040i04.txt"
-    # for vertex_amount, set_name, instance_names in instances:
-    #     print("=" * 100 + "\n")
-    #     print(f"Running: {set_name}: {instance_names}, with {vertex_amount} vertices\n")
-    #     for instance_name in instance_names:
-    #         instance_path = f"maxcut-instances/{set_name}/{instance_name}"
-    #         for setup in setups:
-    #             variation = setup['variation']
-    #             print(f"{variation}")
-    #             with open("output-{}.txt".format(setup['variation']),"w") as f:
-    #                 num_evaluations_list = []
-    #                 num_runs = 10
-    #                 num_success = 0
-    #                 runs = []
-    #                 for i in range(num_runs):
-    #                     fitness = FitnessFunction.MaxCut(instance_path)
+    # uncomment to parse/plot the results for with/without adaptive search
+    # # data processing
+    # combined_logs = ExperimentData.load_multiple_runs(["all_runs_0","all_runs_1", "all_runs_2", "all_runs_missing", "all_runs_quing", "all_runs_adaptive"])
+    # grouped_data = ExperimentData.group_same_executions(combined_logs)
+    # averaged_data = ExperimentData.find_average_values_in_grouped(grouped_data)
+    # filtered_contains_multiple_mutations = ExperimentData.filter_more_than_one_mutation_type(averaged_data)
+    # # The results are grouped in a nested dictionary indexed by [Set][Instance][Is_local_search][(offspring, selection, mutation, population_size, max_budget)]
+    # grouped = ExperimentData.group_same_sets_then_instances_then_mutation(filtered_contains_multiple_mutations)
+    # best_by_population = ExperimentData.leave_best_performing_population_mutation(grouped)
+    # # grouped_remove_small_test_size = ExperimentData.remove_small_test_size(best_by_population)
     #
-    #                     if (variation == "ECGA"):
-    #                         genetic_algorithm = ExtendedCompactGeneticAlgorithm(fitness,
-    #                                                                             population_size,
-    #                                                                             evaluation_budget=evaluation_budget,
-    #                                                                             verbose=False,
-    #                                                                             save_stats=True,
-    #                                                                             **setup)
-    #                     else:
-    #                         genetic_algorithm = GeneticAlgorithm(fitness,
-    #                                                              population_size,
-    #                                                              evaluation_budget=evaluation_budget,
-    #                                                              verbose=False,
-    #                                                              save_stats=True,
-    #                                                              **setup)
+    # # filter out only mutation
+    # grouped_filtered_adaptive_mut_only = ExperimentData.filter_adaptive_mutation(best_by_population, True)
+    # grouped_filtered_no_adaptive_mut = ExperimentData.filter_adaptive_mutation(best_by_population, False)
+    # sorted_by_name_adaptive_mut_only = ExperimentData.sort_by_crossover(grouped_filtered_adaptive_mut_only)
+    # sorted_by_name_no_adaptive_mut_only = ExperimentData.sort_by_crossover(grouped_filtered_no_adaptive_mut)
+    # sorted_by_name_both = ExperimentData.sort_by_crossover(best_by_population)
     #
-    #                     best_fitness, num_evaluations = genetic_algorithm.run()
-    #                     runs.append(genetic_algorithm.statistics)
-    #                 plot_runs_per_generation(runs,
-    #                                          [f"{i}" for i in range(len(runs))],
-    #                                          StatType.BEST_FITNESS,
-    #                                          f"Best fitness per generation across runs for {setup['variation']}\nWith {num_success}/{num_runs} reaching the optimum",
-    #                                          set_name,
-    #                                          f"{vertex_amount}_{instance_name}")
-    #
-    #                 evaluation_dictionary[setup['variation']] = num_evaluations_list
-    #                 print("{}/{} runs successful".format(num_success,num_runs))
-    #                 print("{} evaluations (median)".format(np.median(num_evaluations_list)))
-    #                 percentiles = np.percentile(num_evaluations_list,[10,50,90])
-    #                 f.write("{} {} {} {} {}\n".format(population_size,num_success/num_runs,percentiles[0],percentiles[1],percentiles[2]))
-    #                 print()
-    #
-    #         crossovers = [setup['variation'] for setup in setups]
-    #         plot_evaluation_for_crossovers(evaluation_dictionary, crossovers, population_size, evaluation_budget, (vertex_amount, set_name, instance_name))
+    # Plotting.plot_performances_on_all_sets(sorted_by_name_both)
