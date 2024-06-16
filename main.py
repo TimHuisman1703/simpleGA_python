@@ -256,8 +256,8 @@ if __name__ == "__main__":
     # version without local search filtering
     # sorted_by_name = ExperimentData.sort_by_crossover(grouped_remove_small_test_size)
 
-    Plotting.plot_performances_on_one_set(sorted_by_name_both, "setE")
-
+    # Plotting.plot_performances_on_one_set(sorted_by_name, "setE")
+    Plotting.plot_performances_on_all_sets(sorted_by_name_both)
 
 
 
