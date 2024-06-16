@@ -259,7 +259,7 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname, 
         ax[index].legend(loc='upper left', framealpha=0.5)
         ax[index].set_title(f'Average evaluations to reach optimum for {setname}')
         plt.tight_layout()
-        plt.savefig(f'graphs/results/{setname}_evaluations.png')
+        # plt.savefig(f'graphs/results/{setname}_evaluations.png')
         plt.show(bbox_inches='tight')
     else:
         # Customize the plot
