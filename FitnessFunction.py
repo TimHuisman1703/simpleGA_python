@@ -143,6 +143,14 @@ class MaxCut(FitnessFunction):
             return NO_COLOR_VALUE
         return random.choice([COLOR_VALUE, NO_COLOR_VALUE])
 
+    def contribution_value(self, offspring, valid_indices, new_index, parent_value):
+        vc = 0.0
+        edges = self.adjacency_list[new_index]
+        for other_vertex in edges:
+            if other_vertex in valid_indices and offspring[other_vertex] == 1 - parent_value:
+                vc += self.weights[(new_index, other_vertex)]
+        self.number_of_evaluations += len(edges) / len(self.edge_list)
+        return vc
     def does_partial_change_lead_to_improvement(self, individual: Individual, vertex):
         edges = self.adjacency_list[vertex]
         individual_color = individual.genotype[vertex]

@@ -2,3 +2,4 @@
 /output**.txt
 **__pycache__**
 .idea/
+/runs/local_batch_ids.txt

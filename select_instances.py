@@ -10,11 +10,10 @@ directory = './maxcut-instances'
 def get_instances(seed=seed, amount=num_select, add_low=False, add_mid=False, add_high=False):
     instance_dict = select_instances(seed)
     instances = []
-    
+
     for set_inst in instance_dict.keys():
         # per each number of vertices, get the corresponding files
         vertices = instance_dict[set_inst]
-        print(f'Set {set_inst} has the vertices {sorted(vertices, key=lambda it: it[0])}')
         sorted_vertices= list(sorted(vertices, key=lambda it: it[0]))
 
         if add_low:
@@ -35,6 +34,36 @@ def get_instances(seed=seed, amount=num_select, add_low=False, add_mid=False, ad
 
     return instances
 
+def get_instance_sets(seed=seed, amount=num_select, add_low=False, add_mid=False, add_high=False):
+    instance_dict = select_instances(seed)
+    instances = {}
+
+    for set_inst in instance_dict.keys():
+        # per each number of vertices, get the corresponding files
+        vertices = instance_dict[set_inst]
+        print(f'Set {set_inst} has the vertices {sorted(vertices, key=lambda it: it[0])}')
+        sorted_vertices= list(sorted(vertices, key=lambda it: it[0]))
+
+        instances[set_inst] = []
+
+        if add_low:
+            vertex_amount_low = sorted_vertices[0][0]
+            files_low = sorted_vertices[0][1]
+            files_low = files_low[:amount]
+            instances[set_inst].append((vertex_amount_low, files_low))
+        if add_mid:
+            vertex_amount_mid = sorted_vertices[len(sorted_vertices) // 2][0]
+            files_mid = sorted_vertices[len(sorted_vertices) // 2][1]
+            files_mid = files_mid[:amount]
+            instances[set_inst].append((vertex_amount_mid, files_mid))
+        if add_high:
+            vertex_amount_high = sorted_vertices[len(sorted_vertices) - 1][0]
+            files_high = sorted_vertices[len(sorted_vertices) - 1][1]
+            files_high = files_high[:amount]
+            instances[set_inst].append((vertex_amount_high, files_high))
+
+    return instances
+
 
 def select_instances(seed=seed):
     selection_random = random.Random(seed)
@@ -51,7 +80,6 @@ def select_instances(seed=seed):
                     if v not in vertices:
                         vertices[v] = []
                     vertices[v].append(file)
-        print(f'Set {set_inst} has the vertices {sorted(list(vertices.keys()))}')
 
         vertices = list(sorted(vertices.items(), key=lambda it: it[0]))
         selected_vertices = []
