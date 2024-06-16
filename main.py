@@ -237,22 +237,26 @@ if __name__ == "__main__":
 
 
     # data processing
-    combined_logs = ExperimentData.load_multiple_runs(["all_runs_0","all_runs_1", "all_runs_2", "all_runs_missing", "all_runs_quing"])
+    combined_logs = ExperimentData.load_multiple_runs(["all_runs_0","all_runs_1", "all_runs_2", "all_runs_missing", "all_runs_quing", "all_runs_adaptive"])
     grouped_data = ExperimentData.group_same_executions(combined_logs)
     averaged_data = ExperimentData.find_average_values_in_grouped(grouped_data)
+    filtered_contains_multiple_mutations = ExperimentData.filter_more_than_one_mutation_type(averaged_data)
     # The results are grouped in a nested dictionary indexed by [Set][Instance][Is_local_search][(offspring, selection, mutation, population_size, max_budget)]
-    grouped = ExperimentData.group_same_sets_then_instances(averaged_data)
-    best_by_population = ExperimentData.leave_best_performing_population(grouped)
-    grouped_remove_small_test_size = ExperimentData.remove_small_test_size(best_by_population)
+    grouped = ExperimentData.group_same_sets_then_instances_then_mutation(filtered_contains_multiple_mutations)
+    best_by_population = ExperimentData.leave_best_performing_population_mutation(grouped)
+    # grouped_remove_small_test_size = ExperimentData.remove_small_test_size(best_by_population)
 
     # version with local search filtered True - only local search, False - no local search
-    grouped_filtered_local_search = ExperimentData.filter_local_search(grouped_remove_small_test_size, True)
-    sorted_by_name = ExperimentData.sort_by_crossover(grouped_filtered_local_search)
+    grouped_filtered_adaptive_mut_only = ExperimentData.filter_adaptive_mutation(best_by_population, True)
+    grouped_filtered_no_adaptive_mut = ExperimentData.filter_adaptive_mutation(best_by_population, False)
+    sorted_by_name_adaptive_mut_only = ExperimentData.sort_by_crossover(grouped_filtered_adaptive_mut_only)
+    sorted_by_name_no_adaptive_mut_only = ExperimentData.sort_by_crossover(grouped_filtered_no_adaptive_mut)
+    sorted_by_name_both = ExperimentData.sort_by_crossover(best_by_population)
 
     # version without local search filtering
     # sorted_by_name = ExperimentData.sort_by_crossover(grouped_remove_small_test_size)
 
-    Plotting.plot_performances_on_one_set(sorted_by_name, "setE")
+    Plotting.plot_performances_on_one_set(sorted_by_name_both, "setE")
 
 
 

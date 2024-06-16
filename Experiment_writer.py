@@ -116,13 +116,28 @@ class ExperimentData:
         return averaged_run_data_dict
 
     @staticmethod
-    def group_same_sets_then_instances(averaged_run_data):
-        nested_dict = create_nested_dict(5)
+    def filter_more_than_one_mutation_type(averaged_run_data):
+        nested_dict = create_nested_dict(2)
+        filtered = create_nested_dict(1)
+        # Populate the nested dictionary
+        for key_tuple, value in averaged_run_data.items():
+            offspring, selection, crossover, local_search, mutation, population_size, max_budget, set_name, instance = key_tuple
+            nested_dict[(offspring, selection, crossover, local_search, population_size, max_budget, set_name, instance)][mutation] = value
+        for key_tuple, value in nested_dict.items():
+            if len(value) == 2:
+                for mutation, value1 in value.items():
+                    (offspring, selection, crossover, local_search, population_size, max_budget, set_name, instance) = key_tuple
+                    filtered[(offspring, selection, crossover, local_search, mutation, population_size, max_budget, set_name, instance)] = value1
+        return  filtered
+
+    @staticmethod
+    def group_same_sets_then_instances_then_mutation(averaged_run_data):
+        nested_dict = create_nested_dict(6)
 
         # Populate the nested dictionary
         for key_tuple, value in averaged_run_data.items():
             offspring, selection, crossover, local_search, mutation, population_size, max_budget, set_name, instance = key_tuple
-            nested_dict[set_name][instance][local_search][crossover][(offspring, selection, mutation, population_size, max_budget)] = value
+            nested_dict[set_name][instance][mutation][crossover][(offspring, selection, local_search, population_size, max_budget)] = value
         return  nested_dict
 
     @staticmethod
@@ -151,6 +166,28 @@ class ExperimentData:
                                 best_configuration["population_size"] = config[3]
                                 best_configuration["max_budget"] = config[4]
                         nested_dict[set_name][instance][local_search][crossover] = best_configuration
+        return nested_dict
+
+    @staticmethod
+    def leave_best_performing_population_mutation(grouped):
+        nested_dict = create_nested_dict(5)
+        for set_name, in_dict in grouped.items():
+            for instance, in_dict1 in in_dict.items():
+                for mutation, in_dict2 in in_dict1.items():
+                    for crossover, in_dict3 in in_dict2.items():
+                        smallest_avg_budget = 10000000000000000000000000000
+                        best_configuration = None
+                        for config, in_dict4 in in_dict3.items():
+                            if in_dict4["avg_budget_used"] < smallest_avg_budget:
+                                smallest_avg_budget = in_dict4["avg_budget_used"]
+                                best_configuration = in_dict4
+                                best_configuration["offspring"] = config[
+                                    0]  # (offspring, selection, mutation, population_size, max_budget)
+                                best_configuration["selection"] = config[1]
+                                best_configuration["local_search"] = config[2]
+                                best_configuration["population_size"] = config[3]
+                                best_configuration["max_budget"] = config[4]
+                        nested_dict[set_name][instance][mutation][crossover] = best_configuration
         return nested_dict
 
     @staticmethod
@@ -212,6 +249,17 @@ class ExperimentData:
                     filtered_local_search[set_name][instance][True] = in_dict1[True]
                 else:
                     filtered_local_search[set_name][instance][False] = in_dict1[False]
+        return filtered_local_search
+
+    @staticmethod
+    def filter_adaptive_mutation(grouped, is_adaptive_mutation_lef):
+        filtered_local_search = create_nested_dict(3)
+        for set_name, in_dict in grouped.items():
+            for instance, in_dict1 in in_dict.items():
+                if is_adaptive_mutation_lef:
+                    filtered_local_search[set_name][instance]["AdaptiveMutation"] = in_dict1["AdaptiveMutation"]
+                else:
+                    filtered_local_search[set_name][instance][None] = in_dict1[None]
         return filtered_local_search
 
 

@@ -196,10 +196,10 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname):
             break
         names = []
         for setup in list_of_setups:
-            if setup[0][1]:
-                names.append(f"{setup[0][0]} with LS")
+            if setup[0][1] is None:
+                names.append(f"{setup[0][0]} LS")
             else:
-                names.append(f"{setup[0][0]}")
+                names.append(f"{setup[0][0]} LS with AdaptiveMutation")
     colors = colors[:12] = colors[:12]
 
     for instance, list_of_setups in sorted_by_name_performances_same_set.items():
