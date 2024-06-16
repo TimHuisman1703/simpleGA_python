@@ -259,8 +259,9 @@ def plot_performances_on_one_set(sorted_by_name_performances_same_set, setname, 
         ax[index].legend(loc='upper left', framealpha=0.5)
         ax[index].set_title(f'Average evaluations to reach optimum for {setname}')
         plt.tight_layout()
+        # uncomment to also view the plots
         # plt.savefig(f'graphs/results/{setname}_evaluations.png')
-        plt.show(bbox_inches='tight')
+        # plt.show(bbox_inches='tight')
     else:
         # Customize the plot
         ax[index].set_xticks(x_positions)
