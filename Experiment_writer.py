@@ -141,6 +141,17 @@ class ExperimentData:
         return  nested_dict
 
     @staticmethod
+    def group_same_sets_then_instances(averaged_run_data):
+        nested_dict = create_nested_dict(6)
+
+        # Populate the nested dictionary
+        for key_tuple, value in averaged_run_data.items():
+            offspring, selection, crossover, local_search, mutation, population_size, max_budget, set_name, instance = key_tuple
+            nested_dict[set_name][instance][local_search][crossover][
+                (offspring, selection, mutation, population_size, max_budget)] = value
+        return nested_dict
+
+    @staticmethod
     def load_multiple_runs(names_of_runs):
         concatenated_result = []
         for name in names_of_runs:
